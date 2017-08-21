@@ -17,10 +17,13 @@ import pandas as pd
 from tqdm import trange
 
 
-def read_fad_counters(path):
+def read_fad_counters(path, show_progress=False):
     zfits_file = zfits.ZFits(path)
     data = []
-    for event_id in trange(zfits_file['Events'].get_nrows()):
+    for event_id in trange(
+            zfits_file['Events'].get_nrows(),
+            disable=not show_progress
+            ):
 
         event_num = zfits_file.get('Events', 'EventNum', event_id)[0]
         trigger_type = zfits_file.get('Events', 'TriggerType', event_id)[0]
