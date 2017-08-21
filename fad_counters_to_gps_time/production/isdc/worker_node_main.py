@@ -28,7 +28,6 @@ def main():
             input_run_base = split(input_run_path)[1]
             tmp_input_run_path = join(tmp, input_run_base)
             shutil.copy(input_run_path, tmp_input_run_path)
-            tmp_out_fad_run_path = join(tmp, input_run_base + '_fad.h5')
             fad_counters = read_fad_counters(path=tmp_input_run_path)
             fad_counters.to_hdf(out_path, 'all')
 
