@@ -26,6 +26,7 @@ def qsub(
     os.makedirs(out_dirs['out_dir'], exist_ok=True)
     os.makedirs(out_dirs['fad_dir'], exist_ok=True)
     os.makedirs(out_dirs['std_dir'], exist_ok=True)
+    os.makedirs(out_dirs['job_dir'], exist_ok=True)
 
     for job in tqdm(jobs):
         os.makedirs(job['job_yyyy_mm_nn_dir'], exist_ok=True)

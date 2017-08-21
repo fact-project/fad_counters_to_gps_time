@@ -47,11 +47,13 @@ def make_job_list(
     
     std_dir = join(out_dir, 'std')
     phs_dir = join(out_dir, 'fad')
+    job_dir = join(out_dir, 'job')
 
     directory_structure = {
         'out_dir': out_dir,
         'std_dir': std_dir,
         'fad_dir': phs_dir,
+        'job_dir': job_dir,
     }
 
     jobs = observation_runs_in_run_info(
@@ -97,10 +99,14 @@ def make_job_list(
         job['std_out_path'] = join(job['std_yyyy_mm_nn_dir'], job['base_name']+'.o')
         job['std_err_path'] = join(job['std_yyyy_mm_nn_dir'], job['base_name']+'.e')
 
+        job['job_yyyy_mm_nn_dir'] = join(job['job_dir'], job['yyyymmnn_dir'])
+        job['job_path'] = join(job['job_yyyy_mm_nn_dir'], job['base_name']+'.sh')
+
         job['worker_tmp_dir_base_name'] = tmp_dir_base_name
 
         job['fad_dir'] = fad_dir
         job['fad_yyyy_mm_nn_dir'] = join(job['fad_dir'], job['yyyymmnn_dir'])
+        job['fad_path'] = join(job['fad_yyyy_mm_nn_dir'], job['base_name']+'_fad.h5')
     
     print('Done.')
 
