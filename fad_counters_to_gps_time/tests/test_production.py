@@ -9,7 +9,7 @@ import glob
 
 
 def test_production_write_worker_script():
-    with tempfile.TemporaryDirectory(prefix='photon_stream_test_production') as tmp:
+    with tempfile.TemporaryDirectory(prefix='fad2gps_production') as tmp:
         worker_script_path = join(tmp, 'worker.sh')
         fad2gps.production.isdc.write_worker_node_script(
         	path=worker_script_path,
