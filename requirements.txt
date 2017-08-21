@@ -1,1 +1,2 @@
--e git+git@github.com:dneise/fitsio.git@21e507cebbce575c0b7ed6ebc1221a6c7cf51668#egg=fitsio
+-e git+git@github.com:dneise/fitsio.git
+-e git+git@github.com:fact-project/zfits.git
