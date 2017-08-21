@@ -46,13 +46,13 @@ def make_job_list(
     fact_raw_dir = abspath(fact_raw_dir)
     
     std_dir = join(out_dir, 'std')
-    phs_dir = join(out_dir, 'fad')
+    fad_dir = join(out_dir, 'fad')
     job_dir = join(out_dir, 'job')
 
     directory_structure = {
         'out_dir': out_dir,
         'std_dir': std_dir,
-        'fad_dir': phs_dir,
+        'fad_dir': fad_dir,
         'job_dir': job_dir,
     }
 
@@ -99,6 +99,7 @@ def make_job_list(
         job['std_out_path'] = join(job['std_yyyy_mm_nn_dir'], job['base_name']+'.o')
         job['std_err_path'] = join(job['std_yyyy_mm_nn_dir'], job['base_name']+'.e')
 
+        job['job_dir'] = job_dir
         job['job_yyyy_mm_nn_dir'] = join(job['job_dir'], job['yyyymmnn_dir'])
         job['job_path'] = join(job['job_yyyy_mm_nn_dir'], job['base_name']+'.sh')
 

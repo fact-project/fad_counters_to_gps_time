@@ -2,7 +2,7 @@ from tqdm import tqdm
 import os
 from ..make_job_list import make_job_list
 from .write_worker_node_script import write_worker_node_script
-
+from .dummy_qsub import dummy_qsub
 
 def qsub(
     out_dir,
@@ -12,6 +12,7 @@ def qsub(
     tmp_dir_base_name='fact_fad_counter_to_gps_',
     queue='fact_medium', 
     email='sebmuell@phys.ethz.ch',
+    use_dummy_qsub=False,
 ):
     job_structure = make_job_list(
         out_dir=out_dir,
@@ -31,6 +32,7 @@ def qsub(
     for job in tqdm(jobs):
         os.makedirs(job['job_yyyy_mm_nn_dir'], exist_ok=True)
         os.makedirs(job['std_yyyy_mm_nn_dir'], exist_ok=True)
+        os.makedirs(job['fad_yyyy_mm_nn_dir'], exist_ok=True)
 
         write_worker_node_script(
             path=job['job_path'],
@@ -48,6 +50,9 @@ def qsub(
             job['job_path']
         ]
    
-        qsub_return_code = sp.call(cmd)
-        if qsub_return_code > 0:
-            print('qsub return code: ', qsub_return_code)
+        if use_dummy_qsub:
+            dummy_qsub(cmd)
+        else:
+            qsub_return_code = sp.call(cmd)
+            if qsub_return_code > 0:
+                print('qsub return code: ', qsub_return_code)
