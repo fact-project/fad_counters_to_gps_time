@@ -101,7 +101,7 @@ def make_job_list(
 
         job['job_dir'] = job_dir
         job['job_yyyy_mm_nn_dir'] = join(job['job_dir'], job['yyyymmnn_dir'])
-        job['job_path'] = join(job['job_yyyy_mm_nn_dir'], job['base_name']+'.sh')
+        job['job_path'] = join(job['job_yyyy_mm_nn_dir'], 'job_'+job['base_name']+'.sh')
 
         job['worker_tmp_dir_base_name'] = tmp_dir_base_name
 
