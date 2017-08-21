@@ -20,7 +20,7 @@ def test_production_write_worker_script():
         assert os.access(worker_script_path, os.X_OK)
 
 
-def test_production_run_collection():
+def test_production_idsc_qsub_production():
     with tempfile.TemporaryDirectory(prefix='fad2gps_') as tmp:
 
         runinfo_path = pkg_resources.resource_filename(
