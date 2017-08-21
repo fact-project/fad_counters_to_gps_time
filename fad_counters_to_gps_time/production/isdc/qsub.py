@@ -3,6 +3,7 @@ import os
 from ..make_job_list import make_job_list
 from .write_worker_node_script import write_worker_node_script
 from .dummy_qsub import dummy_qsub
+import subprocess as sp
 
 def qsub(
     out_dir,
