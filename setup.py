@@ -10,6 +10,9 @@ setup(
     license='MIT',
     packages=[
         'fad_counters_to_gps_time',
+        'fad_counters_to_gps_time.production',
+        'fad_counters_to_gps_time.production.isdc',
+        'fad_counters_to_gps_time.production.ethz',
     ],
     package_data={'photon_stream': ['tests/resources/*']},
     install_requires=[
