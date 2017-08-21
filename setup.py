@@ -22,4 +22,7 @@ setup(
         'tqdm'
     ],
     zip_safe=False,
+    entry_points={'console_scripts': [
+        'fad_counter_extraction = fad_counters_to_gps_time.production.isdc.worker_node_main:main',
+    ]},
 )
