@@ -1,17 +1,3 @@
-"""read_fad_counters.py
-
-Read out the 40 FAD counters from a FACT zfits file and write them into a
-pandas dataframe. When called as a standalone the dataframe is written into an
-HDF5 file.
-
-Usage:
-  read_fad_counters.py <zfits_in_file_path> <h5_out_file_path>
-
-Options:
-  -h --help         Show this screen.
-  --version         Show version.
-"""
-from docopt import docopt
 import zfits
 import pandas as pd
 from tqdm import trange
