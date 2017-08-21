@@ -21,17 +21,12 @@ def main():
     try:
         arguments = docopt.docopt(__doc__)
         input_run_path = arguments['--input_run_path']
-        out_path = arguments['--out_path']
-          
-        with tempfile.TemporaryDirectory(prefix='fact_fad_counters') as tmp:
-            input_run_base = split(input_run_path)[1]
-            tmp_input_run_path = join(tmp, input_run_base)
-            shutil.copy(input_run_path, tmp_input_run_path)
-            fad_counters = read_fad_counters(
-                path=tmp_input_run_path, 
-                show_progress=True,
-            )
-            fad_counters.to_hdf(out_path, 'all')
+        out_path = arguments['--out_path'] 
+        fad_counters = read_fad_counters(
+            path=input_run_path, 
+            show_progress=False,
+        )
+        fad_counters.to_hdf(out_path, 'all')
 
     except docopt.DocoptExit as e:
         print(e)
