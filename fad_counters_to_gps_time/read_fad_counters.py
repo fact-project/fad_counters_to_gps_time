@@ -22,7 +22,7 @@ def read_fad_counters(path, show_progress=False):
             'UnixTime': unix_time_tuple[0] + unix_time_tuple[1] / 1e6,
         }
         for board_id in range(len(board_times)):
-            d['counter_{0}'.format(board_id)] = board_times[board_id]
+            d['Counter_{0}'.format(board_id)] = board_times[board_id]
         data.append(d)
 
     df = pd.DataFrame(data)
@@ -35,6 +35,6 @@ def read_fad_counters(path, show_progress=False):
     df['Night'] = df.Night.astype('u4')
     df['Run'] = df.Run.astype('u4')
     for board_id in range(40):
-        df['counter_{0}'.format(board_id)] = df['counter_{0}'.format(board_id)].astype('u4')
+        df['Counter_{0}'.format(board_id)] = df['Counter_{0}'.format(board_id)].astype('u4')
 
     return df
