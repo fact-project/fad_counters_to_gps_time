@@ -28,14 +28,14 @@ def read_fad_counters(path, show_progress=False):
         unix_time_tuple = zfits_file.get('Events', 'UnixTimeUTC', event_id)
         board_times = zfits_file.get('Events', 'BoardTime', event_id)
 
+        d = {
+            'event_num': event_num,
+            'trigger_type': trigger_type,
+            'unix_time': unix_time_tuple[0] + unix_time_tuple[1] / 1e6,
+        }
         for board_id in range(len(board_times)):
-            data.append({
-                'event_num': event_num,
-                'trigger_type': trigger_type,
-                'board_id': board_id,
-                'counter': board_times[board_id],
-                'unix_time': unix_time_tuple[0] + unix_time_tuple[1] / 1e6,
-                })
+            d['counter_{0}'.format(board_id)] = board_times[board_id]
+        data.append(d)
 
     df = pd.DataFrame(data)
     df['night'] = zfits_file['Events'].read_header()['NIGHT']
