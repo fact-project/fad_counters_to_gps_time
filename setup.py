@@ -11,6 +11,7 @@ setup(
     packages=[
         'fad_counters_to_gps_time',
     ],
+    package_data={'photon_stream': ['tests/resources/*']},
     install_requires=[
         'docopt',
         'scipy',
