@@ -1,7 +1,7 @@
 from tqdm import tqdm
 import os
 from ..make_job_list import make_job_list
-from .write_worker_script import write_worker_script
+from .write_worker_node_script import write_worker_node_script
 
 
 def qsub(
@@ -31,17 +31,10 @@ def qsub(
         os.makedirs(job['job_yyyy_mm_nn_dir'], exist_ok=True)
         os.makedirs(job['std_yyyy_mm_nn_dir'], exist_ok=True)
 
-        write_worker_script(
+        write_worker_node_script(
             path=job['job_path'],
-            java_path=job['java_path'],
-            fact_tools_jar_path=job['fact_tools_jar_path'],
-            fact_tools_xml_path=job['fact_tools_xml_path'],
-            in_run_path=job['raw_path'],
-            drs_path=job['drs_path'],
-            aux_dir=job['aux_dir'],
-            out_dir=job['phs_yyyy_mm_nn_dir'],
-            out_base_name=job['base_name'],
-            tmp_dir_base_name=job['worker_tmp_dir_base_name'],
+            input_run_path=job['raw_path'],
+            output_fad_counter_path=job['fad_path']
         )
 
         cmd = [ 
@@ -54,9 +47,6 @@ def qsub(
             job['job_path']
         ]
    
-        if use_dummy_qsub:
-            dummy_qsub(cmd)
-        else:
-            qsub_return_code = sp.call(cmd)
-            if qsub_return_code > 0:
-                print('qsub return code: ', qsub_return_code)
+        qsub_return_code = sp.call(cmd)
+        if qsub_return_code > 0:
+            print('qsub return code: ', qsub_return_code)
