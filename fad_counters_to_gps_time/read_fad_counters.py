@@ -40,10 +40,3 @@ def read_fad_counters(path):
     df['night'] = zfits_file['Events'].read_header()['NIGHT']
     df['run_id'] = zfits_file['Events'].read_header()['RUNID']
     return df
-
-
-if __name__ == '__main__':
-    arguments = docopt(__doc__, version='read_fad_counters 0.0')
-    print(arguments)
-    df = read_fad_counters(arguments['<zfits_in_file_path>'])
-    df.to_hdf(arguments['<h5_out_file_path>'], 'all')
