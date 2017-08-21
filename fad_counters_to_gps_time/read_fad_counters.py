@@ -11,21 +11,30 @@ def read_fad_counters(path, show_progress=False):
             disable=not show_progress
             ):
 
-        event_num = zfits_file.get('Events', 'EventNum', event_id)[0]
-        trigger_type = zfits_file.get('Events', 'TriggerType', event_id)[0]
+        Event = zfits_file.get('Events', 'EventNum', event_id)[0]
+        Trigger = zfits_file.get('Events', 'TriggerType', event_id)[0]
         unix_time_tuple = zfits_file.get('Events', 'UnixTimeUTC', event_id)
         board_times = zfits_file.get('Events', 'BoardTime', event_id)
 
         d = {
-            'event_num': event_num,
-            'trigger_type': trigger_type,
-            'unix_time': unix_time_tuple[0] + unix_time_tuple[1] / 1e6,
+            'Event': Event,
+            'Trigger': Trigger,
+            'UnixTime': unix_time_tuple[0] + unix_time_tuple[1] / 1e6,
         }
         for board_id in range(len(board_times)):
             d['counter_{0}'.format(board_id)] = board_times[board_id]
         data.append(d)
 
     df = pd.DataFrame(data)
-    df['night'] = zfits_file['Events'].read_header()['NIGHT']
-    df['run_id'] = zfits_file['Events'].read_header()['RUNID']
+    df['Night'] = zfits_file['Events'].read_header()['NIGHT']
+    df['Run'] = zfits_file['Events'].read_header()['RUNID']
+
+    df['Event'] = df.Event.astype('u4')
+    df['Trigger'] = df.Trigger.astype('u2')
+    df['UnixTime'] = df.UnixTime.astype('f8')
+    df['Night'] = df.Night.astype('u4')
+    df['Run'] = df.Run.astype('u4')
+    for board_id in range(40):
+        df['counter_{0}'.format(board_id)] = df['counter_{0}'.format(board_id)].astype('u4')
+
     return df
