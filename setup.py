@@ -10,7 +10,11 @@ setup(
     license='MIT',
     packages=[
         'fad_counters_to_gps_time',
+        'fad_counters_to_gps_time.production',
+        'fad_counters_to_gps_time.production.isdc',
+        'fad_counters_to_gps_time.production.ethz',
     ],
+    package_data={'photon_stream': ['tests/resources/*']},
     install_requires=[
         'docopt',
         'scipy',
@@ -22,4 +26,7 @@ setup(
         'tqdm'
     ],
     zip_safe=False,
+    entry_points={'console_scripts': [
+        'fad_counter_extraction = fad_counters_to_gps_time.production.isdc.worker_node_main:main',
+    ]},
 )
