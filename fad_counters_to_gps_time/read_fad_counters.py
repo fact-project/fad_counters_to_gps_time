@@ -10,7 +10,6 @@ Usage:
 Options:
   -h --help         Show this screen.
   --version         Show version.
-  --ŝhow_progress   Show progress using tqdm
 """
 from docopt import docopt
 import zfits
@@ -18,7 +17,7 @@ import pandas as pd
 from tqdm import trange
 
 
-def read_fad_counters(path, show_progress=False):
+def read_fad_counters(path):
     zfits_file = zfits.ZFits(path)
     data = []
     for event_id in trange(zfits_file['Events'].get_nrows()):
@@ -46,9 +45,5 @@ def read_fad_counters(path, show_progress=False):
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='read_fad_counters 0.0')
     print(arguments)
-    df = read_fad_counters(
-        arguments['<zfits_in_file_path>'],
-        show_progress=arguments['--show_progress'],
-    )
-
+    df = read_fad_counters(arguments['<zfits_in_file_path>'])
     df.to_hdf(arguments['<h5_out_file_path>'], 'all')
