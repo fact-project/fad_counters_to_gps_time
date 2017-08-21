@@ -12,7 +12,7 @@ import docopt
 import os
 import shutil 
 import tempfile
-from ..read_fad_counters import read_fad_counters
+from ...read_fad_counters import read_fad_counters
 from os.path import join
 from os.path import split
 
