@@ -30,17 +30,12 @@ def qsub(
         os.makedirs(os.path.split(job['std_out_path'])[0], exist_ok=True)
         os.makedirs(os.path.split(job['std_err_path'])[0], exist_ok=True)
 
-        script_path = pkg_resources.resource_filename(
-            'fad_counters_to_gps_time',
-            'gps_time_reconstruction/__init__.py'
-        )
-
         cmd = [
             'qsub',
             '-q', queue,
             '-o', job['std_out_path'],
             '-e', job['std_err_path'],
-            script_path,
+            'gps_time_reconstruction',
             job['input_file_path'],
             job['gps_time_path'],
             job['models_path'],
@@ -50,7 +45,7 @@ def qsub(
             dummy_qsub(cmd)
         else:
             try:
-                sp.check_output(cmd, stderr=sp.STDOUT)
+                sp.check_output(cmd, stderr=sp.STDOUT, bash=True)
             except sp.CalledProcessError as e:
                 print('returncode', e.returncode)
                 print('output', e.output)
