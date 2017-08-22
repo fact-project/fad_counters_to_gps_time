@@ -38,9 +38,7 @@ def main():
     try:
         arguments = docopt.docopt(__doc__)
 
-        runinfo = ps.production.runinfo.read_runinfo_from_file(
-            arguments['--run_info_path']
-        )
+        runinfo = pd.read_msgpack(arguments['--run_info_path'])
 
         job_structure = fad2gps.production.prepare.make_job_list(
             out_dir=arguments['--out_dir'],
