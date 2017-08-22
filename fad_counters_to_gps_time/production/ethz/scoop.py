@@ -1,12 +1,12 @@
 """
-Usage: scoop_produce_phs --out_dir=DIR [--start_night=NIGHT] [--end_night=NIGHT] --fact_raw_dir=DIR --fact_drs_dir=DIR --fact_aux_dir=DIR --fact_tools_jar_path=PATH --fact_tools_xml_path=PATH --java_path=PATH [--tmp_dir_base_name=BASE] [--only_a_fraction=FACTOR] (--run_info_path=PATH | --fact_password=PASSWORD)
+Usage: scoop_produce_phs --out_dir=DIR --run_info_path=PATH [--fact_raw_dir=DIR] [--tmp_dir_base_name=BASE] [--only_a_fraction=FACTOR]
 
 Options:
     --out_dir=DIR
+    --run_info_path=PATH
     --only_a_fraction=FACTOR    [default: 1.0]
     --fact_raw_dir=DIR          [default: /data/fact_data]
     --tmp_dir_base_name=BASE    [default: fact_fad_counter_]  
-    --run_info_path=PATH
 """
 import docopt
 import scoop
