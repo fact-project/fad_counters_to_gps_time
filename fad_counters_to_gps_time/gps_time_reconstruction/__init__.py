@@ -36,7 +36,7 @@ def train_models(df):
             'p_value': p_value,
             'chi2': _chi2,
             })
-    return fits
+    return pd.DataFrame(fits)
 
 
 def apply_models(models, df):
@@ -65,6 +65,8 @@ def gps_time_reconstruction(
 
     models['Night'] = df.Night.iloc[0]
     models['Run'] = df.Run.iloc[0]
+    models['fRunStart'] = pd.to_datetime(df.UnixTime.mean(), unit='s')
+
     models['is_residual_mean_good'] = residuals.mean() < MAX_RESIDUAL_MEAN
     models['is_residual_std_good'] = residuals.std() < MAX_RESIDUAL_STD
     models['is_p_values_good'] = (models.p_value > MIN_P_VALUE).all()
