@@ -12,6 +12,7 @@ from fact.instrument import trigger
 SQUARE_TIME_ERROR_OF_COUNTER = 1e-8/12
 MAX_RESIDUAL_MEAN = 5e-6
 MAX_RESIDUAL_STD = np.sqrt(1e-5)
+MIN_P_VALUE = 1e-4
 
 
 def get_gps(df):
@@ -39,7 +40,7 @@ def train_models(df):
 
 
 def apply_models(models, df):
-    prediction = np.zeros((40, len(df)), dtype='f8')
+    prediction = np.zeros((len(models), len(df)), dtype='f8')
     for m in models.itertuples():
         counter = df['Counter_{0}'.format(m.board_id)]
         prediction[m.board_id, :] = m.intercept + m.slope * counter
@@ -55,7 +56,7 @@ def gps_time_reconstruction(
     df['time_diff'] = df.time_rounded - df.UnixTime
 
     gps_set = get_gps(df)
-    training_set = gps_set.sample(frac=0.8,random_state=200)
+    training_set = gps_set.sample(frac=2/3)
     models = train_models(training_set)
     df['GpsTime'] = apply_models(models, df)
 
@@ -66,14 +67,14 @@ def gps_time_reconstruction(
     models['Run'] = df.Run.iloc[0]
     models['is_residual_mean_good'] = residuals.mean() < MAX_RESIDUAL_MEAN
     models['is_residual_std_good'] = residuals.std() < MAX_RESIDUAL_STD
-    models['is_p_values_good'] = (models.p_value > 1e-4).all()
+    models['is_p_values_good'] = (models.p_value > MIN_P_VALUE).all()
     models['is_tooth_gaps_good'] = (gps_set.time.dt.second != 0).all()
 
     out_df = df[['Night', 'Run', 'Event', 'Trigger', 'UnixTime', 'GpsTime']]
     return out_df, models
 
 
-def main(fad_counter_path, gps_time_path, meta_path):
+def write_gps_time_reconstruction(fad_counter_path, gps_time_path, meta_path):
     gps_time, meta = gps_time_reconstruction(fad_counter_path)
 
     gps_time.to_hdf(gps_time_path+'.part', 'all')
@@ -83,10 +84,14 @@ def main(fad_counter_path, gps_time_path, meta_path):
     shutil.move(meta_path+'.part', meta_path)
 
 
-if __name__ == '__main__':
+def main():
     args = docopt.docopt(__doc__)
-    main(
+    write_gps_time_reconstruction(
         fad_counter_path=args['<fad_counter_path>'],
         gps_time_path=args['<gps_time_path>'],
         meta_path=args['<meta_path>'],
         )
+
+
+if __name__ == '__main__':
+    main()
