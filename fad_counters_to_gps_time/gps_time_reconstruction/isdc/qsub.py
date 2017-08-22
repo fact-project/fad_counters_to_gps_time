@@ -15,7 +15,7 @@ def qsub(
     queue='fact_medium',
     use_dummy_qsub=False,
 ):
-    job_structure = make_job_list(
+    jobs = make_job_list(
         out_dir=out_dir,
         run_info=run_info,
         only_a_fraction=only_a_fraction,
@@ -23,12 +23,7 @@ def qsub(
         tmp_dir_base_name=tmp_dir_base_name,
     )
 
-    jobs = job_structure['jobs']
-    out_dirs = job_structure['directory_structure']
-    for out_dir in out_dirs.values():
-        os.makedirs(out_dir, exist_ok=True)
-
-    copy_top_level_readme_to(os.path.join(out_dirs['out_dir'], 'README.md'))
+    copy_top_level_readme_to(os.path.join(out_dir, 'README.md'))
 
     for job in tqdm(jobs):
         os.makedirs(job['std_yyyy_mm_nn_dir'], exist_ok=True)
