@@ -32,7 +32,7 @@ def qsub(
 
         script_path = pkg_resources.resource_filename(
             'fad_counters_to_gps_time',
-            'qps_time_reconstruction/__init__.py'
+            'gps_time_reconstruction/__init__.py'
         )
 
         cmd = [
