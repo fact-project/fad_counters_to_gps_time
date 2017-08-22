@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+import shutil
 from tqdm import tqdm
 from ..production.make_job_list import OBSERVATION_RUN_KEY
 from ..production.make_job_list import night_id_2_yyyy
