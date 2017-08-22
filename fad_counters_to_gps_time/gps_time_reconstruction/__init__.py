@@ -1,6 +1,6 @@
 """
 Usage:
-    gps_time_reconstruction <fad_counter_path> <gps_time_path> <meta_path>
+    gps_time_reconstruction <fad_counter_path> <gps_time_path> <models_path>
 """
 import docopt
 import pandas as pd
@@ -76,14 +76,14 @@ def gps_time_reconstruction(
     return out_df, models
 
 
-def write_gps_time_reconstruction(fad_counter_path, gps_time_path, meta_path):
-    gps_time, meta = gps_time_reconstruction(fad_counter_path)
+def write_gps_time_reconstruction(fad_counter_path, gps_time_path, models_path):
+    gps_time, models = gps_time_reconstruction(fad_counter_path)
 
     gps_time.to_hdf(gps_time_path+'.part', 'all')
     shutil.move(gps_time_path+'.part', gps_time_path)
 
-    meta.to_hdf(meta_path+'.part', 'all')
-    shutil.move(meta_path+'.part', meta_path)
+    models.to_hdf(models_path+'.part', 'all')
+    shutil.move(models_path+'.part', models_path)
 
 
 def main():
@@ -91,7 +91,7 @@ def main():
     write_gps_time_reconstruction(
         fad_counter_path=args['<fad_counter_path>'],
         gps_time_path=args['<gps_time_path>'],
-        meta_path=args['<meta_path>'],
+        models_path=args['<models_path>'],
         )
 
 
