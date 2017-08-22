@@ -45,7 +45,7 @@ def make_job_list(
 
     std_dir = join(out_dir, 'std')
     gps_time_dir = join(out_dir, 'gps_time')
-    job_dir = join(out_dir, 'job')
+    models_dir = join(out_dir, 'gps_time_models')
 
     jobs = observation_runs_in_run_info(run_info, only_a_fraction)
     for job in jobs:
@@ -81,23 +81,22 @@ def make_job_list(
         job['std_out_path'] = join(job['std_yyyy_mm_nn_dir'], job['base_name']+'.o')
         job['std_err_path'] = join(job['std_yyyy_mm_nn_dir'], job['base_name']+'.e')
 
-        job['job_dir'] = job_dir
-        job['job_yyyy_mm_nn_dir'] = join(job['job_dir'], job['yyyymmnn_dir'])
-        job['job_path'] = join(job['job_yyyy_mm_nn_dir'], 'job_'+job['base_name']+'.sh')
-
         job['worker_tmp_dir_base_name'] = tmp_dir_base_name
 
         job['gps_time_dir'] = gps_time_dir
-        job['fad_yyyy_mm_nn_dir'] = join(job['gps_time_dir'], job['yyyymmnn_dir'])
-        job['fad_path'] = join(job['fad_yyyy_mm_nn_dir'], job['base_name']+'_fad.h5')
+        job['gps_time_yyyy_mm_nn_dir'] = join(job['gps_time_dir'], job['yyyymmnn_dir'])
+        job['gps_time_path'] = join(job['gps_time_yyyy_mm_nn_dir'], job['base_name']+'_gps_time.h5')
 
+        job['models_dir'] = models_dir
+        job['models_yyyy_mm_nn_dir'] = join(job['models_dir'], job['yyyymmnn_dir'])
+        job['models_path'] = join(job['models_yyyy_mm_nn_dir'], job['base_name']+'_models.h5')
     return {
         'jobs': jobs,
         'directory_structure': {
             'out_dir': out_dir,
             'std_dir': std_dir,
             'gps_time_dir': gps_time_dir,
-            'job_dir': job_dir,
+            'models_dir': models_dir,
         }
     }
 
