@@ -35,11 +35,10 @@ def qsub(
             '-q', queue,
             '-o', job['std_out_path'],
             '-e', job['std_err_path'],
-            '$HOME/anaconda3/bin/gps_time_reconstruction {fad_counter_path} {gps_time_path} {models_path}'.format(
-                fad_counter_path=job['input_file_path'],
-                gps_time_path=job['gps_time_path'],
-                models_path=job['models_path']
-                )
+            '$HOME/anaconda3/bin/gps_time_reconstruction',
+            job['input_file_path'],
+            job['gps_time_path'],
+            job['models_path'],
         ]
 
         if use_dummy_qsub:
