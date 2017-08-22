@@ -41,10 +41,6 @@ def make_job_list(
     out_dir = abspath(out_dir)
     fad_counter_dir = abspath(fad_counter_dir)
 
-    std_dir = join(out_dir, 'std')
-    gps_time_dir = join(out_dir, 'gps_time')
-    models_dir = join(out_dir, 'gps_time_models')
-
     jobs = observation_runs_in_run_info(run_info, only_a_fraction)
     for job in jobs:
         yyyymmnn_dir = '{y:04d}/{m:02d}/{n:02d}/'.format(
@@ -61,29 +57,21 @@ def make_job_list(
             yyyymmnn_dir,
             base_name+'_fad.h5'
         )
-        job['std_yyyy_mm_nn_dir'] = join(std_dir, yyyymmnn_dir)
-        job['gps_time_yyyy_mm_nn_dir'] = join(gps_time_dir, yyyymmnn_dir)
-        job['models_yyyy_mm_nn_dir'] = join(models_dir, yyyymmnn_dir)
+        job['std_yyyy_mm_nn_dir'] = join(out_dir, 'std', yyyymmnn_dir)
+        job['gps_time_yyyy_mm_nn_dir'] = join(out_dir, 'gps_time', yyyymmnn_dir)
+        job['models_yyyy_mm_nn_dir'] = join(out_dir, 'gps_time_models', yyyymmnn_dir)
 
         job['std_out_path'] = join(job['std_yyyy_mm_nn_dir'], base_name + '.o')
         job['std_err_path'] = join(job['std_yyyy_mm_nn_dir'], base_name + '.e')
 
-        job['gps_time_path'] = join(job['gps_time_yyyy_mm_nn_dir'], base_name+'_gps_time.h5')
-        job['models_path'] = join(job['models_yyyy_mm_nn_dir'], base_name+'_models.h5')
+        job['gps_time_path'] = join(job['gps_time_yyyy_mm_nn_dir'], base_name+'.h5')
+        job['models_path'] = join(job['models_yyyy_mm_nn_dir'], base_name+'.h5')
 
         job['is_file_existing'] = exists(job['input_file_path'])
 
     jobs = [job for job in jobs.values if job['is_file_existing']]
 
-    return {
-        'jobs': jobs,
-        'directory_structure': {
-            'out_dir': out_dir,
-            'std_dir': std_dir,
-            'gps_time_dir': gps_time_dir,
-            'models_dir': models_dir,
-        }
-    }
+    return jobs
 
 
 def observation_runs_in_run_info(
