@@ -90,16 +90,12 @@ def observation_runs_in_run_info(
     run_info,
     only_a_fraction=1.0
 ):
-    run_info = run_info[run_info.fRunTypeKey == OBSERVATION_RUN_KEY].copy()
-    run_info = run_info.sample(frac=only_a_fraction)
-
-    jobs = []
-    for run in run_info.itertuples():
-        jobs.append({
-            'Night': run.fNight,
-            'Run': run.fRunID
-            })
-    return jobs
+    return [
+        {'Night': run.fNight, 'Run': run.fRunID}
+        for run in run_info[
+                run_info.fRunTypeKey == OBSERVATION_RUN_KEY
+            ].sample(frac=only_a_fraction).itertuples()
+    ]
 
 
 def night_id_2_yyyy(night):
