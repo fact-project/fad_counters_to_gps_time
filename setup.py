@@ -16,7 +16,8 @@ setup(
     ],
     package_data={'photon_stream': [
             'tests/resources/*',
-            'production/resources/*'
+            'production/resources/*',
+            'gps_time_reconstruction/resources/*',
         ]
     },
     install_requires=[
