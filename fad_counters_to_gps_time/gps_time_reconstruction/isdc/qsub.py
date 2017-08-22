@@ -1,7 +1,6 @@
 from tqdm import tqdm
 import os
 from ..make_job_list import make_job_list
-from .write_worker_node_script import write_worker_node_script
 from .dummy_qsub import dummy_qsub
 import subprocess as sp
 from ..copy_readmes import copy_top_level_readme_to
@@ -42,7 +41,7 @@ def qsub(
             '-o', job['std_out_path'],
             '-e', job['std_err_path'],
             'gps_time_reconstruction {fad_counter_path} {gps_time_path} {models_path}'.format(
-                fad_counter_path=job['fad_counter_file_path'],
+                fad_counter_path=job['input_file_path'],
                 gps_time_path=job['gps_time_path'],
                 models_path=job['models_path']
                 )
