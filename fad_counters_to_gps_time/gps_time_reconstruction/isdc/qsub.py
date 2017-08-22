@@ -35,7 +35,7 @@ def qsub(
             '-q', queue,
             '-o', job['std_out_path'],
             '-e', job['std_err_path'],
-            sp.check_output(['which', 'gps_time_reconstruction']).split().decode('ascii'),
+            sp.check_output(['which', 'gps_time_reconstruction']).strip().decode('ascii'),
             job['input_file_path'],
             job['gps_time_path'],
             job['models_path'],
