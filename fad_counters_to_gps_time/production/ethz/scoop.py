@@ -26,7 +26,7 @@ def run_fad_extraction_job(job):
                 'fad_counter_extraction', 
                 '-i', job['raw_path'],
                 '-o', job['fad_path'],
-            ]
+            ],
             stdout=sout, 
             stderr=serr,
         )
