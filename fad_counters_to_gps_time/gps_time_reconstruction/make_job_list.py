@@ -61,25 +61,20 @@ def make_job_list(
             yyyymmnn_dir,
             base_name+'_fad.h5'
         )
+        job['std_yyyy_mm_nn_dir'] = join(std_dir, yyyymmnn_dir)
+        job['gps_time_yyyy_mm_nn_dir'] = join(gps_time_dir, yyyymmnn_dir)
+        job['models_yyyy_mm_nn_dir'] = join(models_dir, yyyymmnn_dir)
+
+        job['std_out_path'] = join(job['std_yyyy_mm_nn_dir'], base_name + '.o')
+        job['std_err_path'] = join(job['std_yyyy_mm_nn_dir'], base_name + '.e')
+
+        job['gps_time_path'] = join(job['gps_time_yyyy_mm_nn_dir'], base_name+'_gps_time.h5')
+        job['models_path'] = join(job['models_yyyy_mm_nn_dir'], base_name+'_models.h5')
+
         job['is_file_existing'] = exists(job['input_file_path'])
 
     jobs = [job for job in jobs.values if job['is_file_existing']]
 
-    for job in jobs:
-        job['std_dir'] = std_dir
-        job['std_yyyy_mm_nn_dir'] = join(job['std_dir'], yyyymmnn_dir)
-        job['std_out_path'] = join(job['std_yyyy_mm_nn_dir'], base_name+'.o')
-        job['std_err_path'] = join(job['std_yyyy_mm_nn_dir'], base_name+'.e')
-
-        job['worker_tmp_dir_base_name'] = tmp_dir_base_name
-
-        job['gps_time_dir'] = gps_time_dir
-        job['gps_time_yyyy_mm_nn_dir'] = join(job['gps_time_dir'], yyyymmnn_dir)
-        job['gps_time_path'] = join(job['gps_time_yyyy_mm_nn_dir'], base_name+'_gps_time.h5')
-
-        job['models_dir'] = models_dir
-        job['models_yyyy_mm_nn_dir'] = join(job['models_dir'], yyyymmnn_dir)
-        job['models_path'] = join(job['models_yyyy_mm_nn_dir'], base_name+'_models.h5')
     return {
         'jobs': jobs,
         'directory_structure': {
