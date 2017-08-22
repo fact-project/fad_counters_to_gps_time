@@ -35,7 +35,7 @@ def qsub(
             '-q', queue,
             '-o', job['std_out_path'],
             '-e', job['std_err_path'],
-            '$HOME/anaconda3/bin/gps_time_reconstruction',
+            sp.check_output(['which', 'gps_time_reconstruction']).split(),
             job['input_file_path'],
             job['gps_time_path'],
             job['models_path'],
