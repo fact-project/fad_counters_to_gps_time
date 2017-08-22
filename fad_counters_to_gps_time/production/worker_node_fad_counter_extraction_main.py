@@ -26,7 +26,8 @@ def main():
             path=input_run_path, 
             show_progress=False,
         )
-        fad_counters.to_hdf(out_path, 'all')
+        fad_counters.to_hdf(out_path+'.part', 'all')
+        shutil.move(out_path+'.part', out_path)
 
     except docopt.DocoptExit as e:
         print(e)
