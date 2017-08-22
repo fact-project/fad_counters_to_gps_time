@@ -12,63 +12,47 @@ def make_job_list(
     out_dir,
     run_info,
     only_a_fraction=1.0,
-    fact_raw_dir='/fact/raw',
-    tmp_dir_base_name='fact_fad_counter_to_gps_',
+    fad_counter_dir='/gpfs0/fact/processing/fad_counters/fad',
+    tmp_dir_base_name='gps_time_reco_',
 ):
     """
-    Returns a list of jobs, and output directory structure. 
-    A job is a dict with all paths needed to extract the FAD counters from a
-    FACT run and write all the stdout and stderror.
+    Returns a list of jobs, and output directory structure.
+    A job is a dict with all paths needed to reconstruct the gps time from
+    the fad counters.
 
     Parameters
     ----------
 
-    out_dir             The path to the output directory where the fad_counters
+    out_dir             The path to the output directory where the gps times
                         are collected. The out_dir is created if not existing.
 
     run_info            A pandas DataFrame() of the FACT run-info-database which
                         is used as a reference for the runs to be processed.
                         (default None, download the latest run-info on the fly)
 
-    only_a_fraction     A ratio between 0.0 and 1.0 to only process a 
-                        random fraction of the runs. Usefull for debugging over 
+    only_a_fraction     A ratio between 0.0 and 1.0 to only process a
+                        random fraction of the runs. Usefull for debugging over
                         long periodes of observations. (default 1.0)
 
-    fact_raw_dir        The path to the FACT raw observation directory.
+    fad_counter_dir     The path to the FAD counters
 
-    tmp_dir_base_name   The base name of the temporary directory on the qsub 
-                        worker nodes. (default 'fact_photon_stream_JOB_ID_')
+    tmp_dir_base_name   The base name of the temporary directory on the qsub
+                        worker nodes. (default 'gps_time_reco_JOB_ID_')
     """
-    
-    print('Start FAD counter extraction ...')
 
     out_dir = os.path.abspath(out_dir)
-    fact_raw_dir = abspath(fact_raw_dir)
-    
+    fad_counter_dir = abspath(fad_counter_dir)
+
     std_dir = join(out_dir, 'std')
-    fad_dir = join(out_dir, 'fad')
+    gps_time_dir = join(out_dir, 'gps_time')
     job_dir = join(out_dir, 'job')
 
-    directory_structure = {
-        'out_dir': out_dir,
-        'std_dir': std_dir,
-        'fad_dir': fad_dir,
-        'job_dir': job_dir,
-    }
-
-    jobs = observation_runs_in_run_info(
-        run_info=run_info,
-        only_a_fraction=only_a_fraction
-    )
-
-    print('Got '+str(len(jobs))+' observation runs to be processed.')
-    print('Find overlap with runs accessible in "'+fact_raw_dir+'" ...')
-
+    jobs = observation_runs_in_run_info(run_info, only_a_fraction)
     for job in jobs:
         job['yyyy'] = night_id_2_yyyy(job['Night'])
         job['mm'] = night_id_2_mm(job['Night'])
         job['nn'] = night_id_2_nn(job['Night'])
-        job['fact_raw_dir'] = fact_raw_dir
+        job['fad_counter_dir'] = fad_counter_dir
         job['yyyymmnn_dir'] = '{y:04d}/{m:02d}/{n:02d}/'.format(
             y=job['yyyy'],
             m=job['mm'],
@@ -78,22 +62,20 @@ def make_job_list(
             bsn=job['Night'],
             rrr=job['Run']
         )
-        job['raw_file_name'] = job['base_name']+'.fits.fz'
-        job['raw_path'] = join(
-            job['fact_raw_dir'], 
-            job['yyyymmnn_dir'], 
-            job['raw_file_name']
+        job['fad_counter_file_name'] = job['base_name']+'_fad.h5'
+        job['fad_counter_file_path'] = join(
+            job['fad_counter_dir'],
+            job['yyyymmnn_dir'],
+            job['fad_counter_file_name']
         )
 
     accesible_jobs = []
     for job in jobs:
-        if os.path.exists(job['raw_path']):
+        if os.path.exists(job['fad_counter_file_path']):
             accesible_jobs.append(job)
     jobs = accesible_jobs
 
-    print('Found '+str(len(jobs))+' runs both in run_info and accesible in "'+fact_raw_dir+'".')
-
-    for job in jobs: 
+    for job in jobs:
         job['std_dir'] = std_dir
         job['std_yyyy_mm_nn_dir'] = join(job['std_dir'], job['yyyymmnn_dir'])
         job['std_out_path'] = join(job['std_yyyy_mm_nn_dir'], job['base_name']+'.o')
@@ -105,41 +87,34 @@ def make_job_list(
 
         job['worker_tmp_dir_base_name'] = tmp_dir_base_name
 
-        job['fad_dir'] = fad_dir
-        job['fad_yyyy_mm_nn_dir'] = join(job['fad_dir'], job['yyyymmnn_dir'])
+        job['gps_time_dir'] = gps_time_dir
+        job['fad_yyyy_mm_nn_dir'] = join(job['gps_time_dir'], job['yyyymmnn_dir'])
         job['fad_path'] = join(job['fad_yyyy_mm_nn_dir'], job['base_name']+'_fad.h5')
-    
-    print('Done.')
 
     return {
         'jobs': jobs,
-        'directory_structure': directory_structure
+        'directory_structure': {
+            'out_dir': out_dir,
+            'std_dir': std_dir,
+            'gps_time_dir': gps_time_dir,
+            'job_dir': job_dir,
+        }
     }
-
 
 
 def observation_runs_in_run_info(
     run_info,
     only_a_fraction=1.0
 ):
-    valid = (
-        run_info['fRunTypeKey'] == OBSERVATION_RUN_KEY
-    ).as_matrix()
-
-    fraction = np.random.uniform(size=len(valid)) < only_a_fraction
-    
-    night_ids = run_info['fNight'][valid*fraction]
-    run_ids = run_info['fRunID'][valid*fraction]
+    run_info = run_info[run_info.fRunTypeKey == OBSERVATION_RUN_KEY].copy()
+    run_info = run_info.sample(frac=only_a_fraction)
 
     jobs = []
-
-    for i, run_id in enumerate(run_ids):
-        jobs.append(
-            {
-                'Night': night_ids.iloc[i],
-                'Run': run_id
-            }
-        )
+    for run in run_info.itertuples():
+        jobs.append({
+            'Night': run.fNight,
+            'Run': run.fRunID
+            })
     return jobs
 
 
