@@ -57,6 +57,7 @@ def make_job_list(
             yyyymmnn_dir,
             base_name+'_fad.h5'
         )
+        job['out_dir'] = out_dir
         job['std_out_path'] = join(out_dir, 'std', yyyymmnn_dir, base_name + '.o')
         job['std_err_path'] = join(out_dir, 'std', yyyymmnn_dir, base_name + '.e')
         job['gps_time_path'] = join(out_dir, 'gps_time', yyyymmnn_dir, base_name+'_gps_time.h5')
