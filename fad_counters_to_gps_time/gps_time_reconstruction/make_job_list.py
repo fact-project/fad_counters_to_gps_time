@@ -1,5 +1,3 @@
-import os
-import numpy as np
 from os.path import abspath
 from os.path import join
 from os.path import exists
@@ -40,7 +38,7 @@ def make_job_list(
                         worker nodes. (default 'gps_time_reco_JOB_ID_')
     """
 
-    out_dir = os.path.abspath(out_dir)
+    out_dir = abspath(out_dir)
     fad_counter_dir = abspath(fad_counter_dir)
 
     std_dir = join(out_dir, 'std')
@@ -71,7 +69,7 @@ def make_job_list(
 
     accesible_jobs = []
     for job in jobs:
-        if os.path.exists(job['fad_counter_file_path']):
+        if exists(job['fad_counter_file_path']):
             accesible_jobs.append(job)
     jobs = accesible_jobs
 
