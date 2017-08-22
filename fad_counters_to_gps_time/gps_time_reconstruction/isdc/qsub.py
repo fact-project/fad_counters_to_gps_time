@@ -49,8 +49,4 @@ def qsub(
         if use_dummy_qsub:
             dummy_qsub(cmd)
         else:
-            try:
-                output = sp.check_output(cmd, stderr=sp.STDOUT)
-            except sp.CalledProcessError as e:
-                print(output)
-                print(e)
+            sp.check_output(cmd, stderr=sp.STDOUT)
