@@ -12,25 +12,15 @@ import docopt
 import scoop
 import os
 import fad_counters_to_gps_time as fad2gps
-import subprocess
 import shutil
+import pandas as pd
 
 
 def run_fad_extraction_job(job):
-    os.makedirs(job['std_yyyy_mm_nn_dir'], exist_ok=True)
     os.makedirs(job['fad_yyyy_mm_nn_dir'], exist_ok=True)
-
-    with open(job['std_out_path'], 'w') as sout, open(job['std_err_path'], 'w') as serr:
-        rc = subprocess.call(
-            [
-                'fad_counter_extraction', 
-                '-i', job['raw_path'],
-                '-o', job['fad_path'],
-            ],
-            stdout=sout, 
-            stderr=serr,
-        )
-
+    fad_counter = fad2gps.read_fad_counters(job['raw_path'])
+    fad_counters.to_hdf(job['fad_path']+'.part', 'all')
+    shutil.move(job['fad_path']+'.part', job['fad_path'])
     return 0
 
 
@@ -40,7 +30,7 @@ def main():
 
         runinfo = pd.read_msgpack(arguments['--run_info_path'])
 
-        job_structure = fad2gps.production.prepare.make_job_list(
+        job_structure = fad2gps.production.make_job_list(
             out_dir=arguments['--out_dir'],
             run_info=runinfo,
             only_a_fraction=float(arguments['--only_a_fraction']),
@@ -52,8 +42,7 @@ def main():
         out_dirs = job_structure['directory_structure']
         os.makedirs(out_dirs['out_dir'], exist_ok=True)
         os.makedirs(out_dirs['fad_dir'], exist_ok=True)
-        os.makedirs(out_dirs['std_dir'], exist_ok=True)
-        copy_top_level_readme_to(os.path.join(out_dirs['out_dir'], 'README.md'))
+        fad2gps.production.copy_readmes.copy_top_level_readme_to(os.path.join(out_dirs['out_dir'], 'README.md'))
 
         job_return_codes = list(scoop.futures.map(run_fad_extraction_job, jobs))
 
