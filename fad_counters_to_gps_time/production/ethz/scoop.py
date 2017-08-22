@@ -22,16 +22,20 @@ import shutil
 
 
 def run_fad_extraction_job(job):
-    os.makedirs(job['job_yyyy_mm_nn_dir'], exist_ok=True)
     os.makedirs(job['std_yyyy_mm_nn_dir'], exist_ok=True)
     os.makedirs(job['fad_yyyy_mm_nn_dir'], exist_ok=True)
 
-    with tempfile.TemporaryDirectory(prefix=job['worker_tmp_dir_base_name']) as tmp:
-        input_run_base = split(job['raw_path'])[1]
-        tmp_input_run_path = join(tmp, input_run_base)
-        shutil.copy(job['raw_path'], tmp_input_run_path)
-        fad_counters = fad2gps.read_fad_counters(path=tmp_input_run_path)
-        fad_counters.to_hdf(job['fad_path'], 'all')
+    with open(job['std_out_path'], 'w') as sout, open(job['std_err_path'], 'w') as serr:
+        rc = subprocess.call(
+            [
+                'fad_counter_extraction', 
+                '-i', job['raw_path'],
+                '-o', job['fad_path'],
+            ]
+            stdout=sout, 
+            stderr=serr,
+        )
+
     return 0
 
 
@@ -56,7 +60,6 @@ def main():
         os.makedirs(out_dirs['out_dir'], exist_ok=True)
         os.makedirs(out_dirs['fad_dir'], exist_ok=True)
         os.makedirs(out_dirs['std_dir'], exist_ok=True)
-        os.makedirs(out_dirs['job_dir'], exist_ok=True)
 
         job_return_codes = list(scoop.futures.map(run_fad_extraction_job, jobs))
 
