@@ -1,3 +1,4 @@
+#!/bin/env python
 """
 Usage:
     gps_time_reconstruction <fad_counter_path> <gps_time_path> <models_path>
