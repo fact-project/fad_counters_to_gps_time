@@ -67,9 +67,7 @@ def make_job_list(
         job['gps_time_path'] = join(job['gps_time_yyyy_mm_nn_dir'], base_name+'.h5')
         job['models_path'] = join(job['models_yyyy_mm_nn_dir'], base_name+'.h5')
 
-        job['is_file_existing'] = exists(job['input_file_path'])
-
-    jobs = [job for job in jobs.values if job['is_file_existing']]
+    jobs = [job for job in jobs if exists(job['input_file_path'])]
 
     return jobs
 
