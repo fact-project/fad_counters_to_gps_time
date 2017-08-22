@@ -60,7 +60,7 @@ def gps_time_reconstruction(
     models = train_models(training_set)
     df['GpsTime'] = apply_models(models, df)
 
-    test_set = df.drop(training_set.index)
+    test_set = get_gps(df).drop(training_set.index)
     residuals = test_set.GpsTime - test_set.time_rounded
 
     models['Night'] = df.Night.iloc[0]
