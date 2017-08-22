@@ -27,6 +27,6 @@ setup(
     ],
     zip_safe=False,
     entry_points={'console_scripts': [
-        'fad_counter_extraction = fad_counters_to_gps_time.production.isdc.worker_node_main:main',
+        'fad_counter_extraction = fad_counters_to_gps_time.production.worker_node_fad_counter_extraction_main:main',
     ]},
 )
