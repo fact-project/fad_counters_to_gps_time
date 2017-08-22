@@ -22,7 +22,7 @@ def qsub(
         fad_counter_dir=fad_counter_dir,
         tmp_dir_base_name=tmp_dir_base_name,
     )
-
+    os.makedirs(os.path.abspath(out_dir), exist_ok=True)
     copy_top_level_readme_to(os.path.join(out_dir, 'README.md'))
 
     for job in tqdm(jobs):
