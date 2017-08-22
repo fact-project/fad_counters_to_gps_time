@@ -18,9 +18,10 @@ import pandas as pd
 
 def run_fad_extraction_job(job):
     os.makedirs(job['fad_yyyy_mm_nn_dir'], exist_ok=True)
-    fad_counter = fad2gps.read_fad_counters(job['raw_path'])
-    fad_counters.to_hdf(job['fad_path']+'.part', 'all')
-    shutil.move(job['fad_path']+'.part', job['fad_path'])
+    fad2gps.production.run_fad_counter_extraction(
+        input_path=job['raw_path'],
+        out_path=job['fad_path']
+    )
     return 0
 
 
