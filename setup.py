@@ -14,8 +14,7 @@ setup(
         'fad_counters_to_gps_time.production.isdc',
         'fad_counters_to_gps_time.production.ethz',
     ],
-    package_data={'photon_stream': 
-        [
+    package_data={'photon_stream': [
             'tests/resources/*',
             'production/resources/*'
         ]
@@ -32,6 +31,9 @@ setup(
     ],
     zip_safe=False,
     entry_points={'console_scripts': [
-        'fad_counter_extraction = fad_counters_to_gps_time.production.worker_node_fad_counter_extraction_main:main',
+        ('fad_counter_extraction = fad_counters_to_gps_time.' +
+            'production.worker_node_fad_counter_extraction_main:main'),
+        ('gps_time_reconstruction = fad_counters_to_gps_time.' +
+            'gps_time_reconstruction.__init__:main'),
     ]},
 )
