@@ -19,7 +19,7 @@ import pandas as pd
 def run_fad_extraction_job(job):
     os.makedirs(job['fad_yyyy_mm_nn_dir'], exist_ok=True)
     fad2gps.production.run_fad_counter_extraction(
-        input_path=job['raw_path'],
+        in_path=job['raw_path'],
         out_path=job['fad_path']
     )
     return 0
