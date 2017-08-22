@@ -8,6 +8,7 @@ import numpy as np
 from scipy.stats import chi2
 import shutil
 from fact.instrument import trigger
+from . import isdc
 
 SQUARE_TIME_ERROR_OF_COUNTER = 1e-8/12
 MAX_RESIDUAL_MEAN = 5e-6
