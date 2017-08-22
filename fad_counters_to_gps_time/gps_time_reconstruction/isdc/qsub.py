@@ -1,5 +1,6 @@
 from tqdm import tqdm
 import os
+import os.path
 from ..make_job_list import make_job_list
 from .dummy_qsub import dummy_qsub
 import subprocess as sp
@@ -26,9 +27,8 @@ def qsub(
     copy_top_level_readme_to(os.path.join(out_dir, 'README.md'))
 
     for job in tqdm(jobs):
-        os.makedirs(job['std_yyyy_mm_nn_dir'], exist_ok=True)
-        os.makedirs(job['gps_time_yyyy_mm_nn_dir'], exist_ok=True)
-        os.makedirs(job['models_yyyy_mm_nn_dir'], exist_ok=True)
+        os.makedirs(os.path.split(job['std_out_path'])[0], exist_ok=True)
+        os.makedirs(os.path.split(job['std_err_path'])[0], exist_ok=True)
 
         script_path = sp.check_output(
             ['which', 'gps_time_reconstruction']
