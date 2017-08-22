@@ -34,8 +34,8 @@ def train_models(df):
         slope, intercept = fit
         fits.append({
             'board_id': board_id,
-            'slope': slope,
-            'intercept': intercept,
+            'slope': np.float128(slope),
+            'intercept': np.float128(intercept),
             'p_value': p_value,
             'chi2': _chi2,
             })
@@ -43,7 +43,7 @@ def train_models(df):
 
 
 def apply_models(models, df):
-    prediction = np.zeros((len(models), len(df)), dtype='f8')
+    prediction = np.zeros((len(models), len(df)), dtype=np.float128)
     for m in models.itertuples():
         counter = df['Counter_{0}'.format(m.board_id)]
         prediction[m.board_id, :] = m.intercept + m.slope * counter
