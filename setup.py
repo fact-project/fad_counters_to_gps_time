@@ -14,7 +14,12 @@ setup(
         'fad_counters_to_gps_time.production.isdc',
         'fad_counters_to_gps_time.production.ethz',
     ],
-    package_data={'photon_stream': ['tests/resources/*']},
+    package_data={'photon_stream': 
+        [
+            'tests/resources/*',
+            'production/resources/*'
+        ]
+    },
     install_requires=[
         'docopt',
         'scipy',

@@ -11,13 +11,8 @@ Options:
 import docopt
 import scoop
 import os
-import glob
 import fad_counters_to_gps_time as fad2gps
-from os.path import join
-from os.path import split
-from os.path import exists
 import subprocess
-import tempfile
 import shutil
 
 
@@ -60,6 +55,7 @@ def main():
         os.makedirs(out_dirs['out_dir'], exist_ok=True)
         os.makedirs(out_dirs['fad_dir'], exist_ok=True)
         os.makedirs(out_dirs['std_dir'], exist_ok=True)
+        copy_top_level_readme_to(os.path.join(out_dirs['out_dir'], 'README.md'))
 
         job_return_codes = list(scoop.futures.map(run_fad_extraction_job, jobs))
 

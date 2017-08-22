@@ -4,6 +4,7 @@ from ..make_job_list import make_job_list
 from .write_worker_node_script import write_worker_node_script
 from .dummy_qsub import dummy_qsub
 import subprocess as sp
+from ..copy_readmes import copy_top_level_readme_to
 
 def qsub(
     out_dir,
@@ -29,6 +30,7 @@ def qsub(
     os.makedirs(out_dirs['fad_dir'], exist_ok=True)
     os.makedirs(out_dirs['std_dir'], exist_ok=True)
     os.makedirs(out_dirs['job_dir'], exist_ok=True)
+    copy_top_level_readme_to(os.path.join(out_dirs['out_dir'], 'README.md'))
 
     for job in tqdm(jobs):
         os.makedirs(job['job_yyyy_mm_nn_dir'], exist_ok=True)
