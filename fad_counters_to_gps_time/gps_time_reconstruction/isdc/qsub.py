@@ -30,12 +30,16 @@ def qsub(
         os.makedirs(job['gps_time_yyyy_mm_nn_dir'], exist_ok=True)
         os.makedirs(job['models_yyyy_mm_nn_dir'], exist_ok=True)
 
+        script_path = sp.check_output(
+            ['which', 'gps_time_reconstruction']
+            ).strip().decode('ascii')
+
         cmd = [
             'qsub',
             '-q', queue,
             '-o', job['std_out_path'],
             '-e', job['std_err_path'],
-            sp.check_output(['which', 'gps_time_reconstruction']).strip().decode('ascii'),
+            script_path,
             job['input_file_path'],
             job['gps_time_path'],
             job['models_path'],
