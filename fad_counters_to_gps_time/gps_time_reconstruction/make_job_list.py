@@ -59,9 +59,8 @@ def make_job_list(
         )
         job['std_out_path'] = join(out_dir, 'std', yyyymmnn_dir, base_name + '.o')
         job['std_err_path'] = join(out_dir, 'std', yyyymmnn_dir, base_name + '.e')
-
-        job['gps_time_path'] = join(out_dir, 'gps_time', yyyymmnn_dir, base_name+'.h5')
-        job['models_path'] = join(out_dir, 'gps_time_models', yyyymmnn_dir, base_name+'.h5')
+        job['gps_time_path'] = join(out_dir, 'gps_time', yyyymmnn_dir, base_name+'_gps_time.h5')
+        job['models_path'] = join(out_dir, 'gps_time_models', yyyymmnn_dir, base_name+'_models.h5')
 
     jobs = [job for job in jobs if exists(job['input_file_path'])]
 
