@@ -1,30 +1,29 @@
-import numpy as np
 import pandas as pd
 import os
 import shutil
 from tqdm import tqdm
 from ..production.make_job_list import OBSERVATION_RUN_KEY
-from ..production.make_job_list import night_id_2_yyyy
-from ..production.make_job_list import night_id_2_mm
-from ..production.make_job_list import night_id_2_nn
 from fact import credentials
 
 
 def make_run_path(run, base_dir, suffix='_fad.h5'):
-    file_name = '{yyyymmnn:08d}_{rrr:03d}{suffix}'.format(
-        yyyymmnn=run.fNight,
-        rrr=run.fRunID,
-        suffix=suffix
-    )
+    night = '{:08d}'.format(run.fNight)
+    run_id = '{:03d}'.format(run.fRunID)
 
-    run_path = os.path.join(
+    return os.path.join(
         base_dir,
-        '{yyyy:04d}'.format(yyyy=night_id_2_yyyy(run.fNight)),
-        '{mm:02d}'.format(mm=night_id_2_mm(run.fNight)),
-        '{nn:02d}'.format(nn=night_id_2_nn(run.fNight)),
-        file_name
+        '{yyyy}',
+        '{mm}',
+        '{nn}',
+        '{night}_{run_id}{suffix}'
+    ).format(
+        night=night,
+        run_id=run_id,
+        yyyy=night[0:4],
+        mm=night[4:6],
+        nn=night[6:8],
+        suffix=suffix,
     )
-    return run_path
 
 
 def update_status_runinfo(fad_dir, runinfo):
