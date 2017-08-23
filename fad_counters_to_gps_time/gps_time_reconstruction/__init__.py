@@ -35,12 +35,19 @@ def make_counter_strictly_monotonic_increasing(counter):
         return counter
 
 
+def more_precise_linear_fit(X, Y):
+    fit = np.polyfit(X - X[0], Y - Y[0], deg=1)
+    fit = (fit[0], (fit[1] + Y[0] - fit[0]*X[0]))
+    return fit
+
+
 def train_models(df):
     fits = []
     for board_id in range(40):
-        X = df['Counter_{0}'.format(board_id)]
+        X = df['Counter_{0}'.format(board_id)].values
         Y = df.time_rounded
-        fit = np.polyfit(X, Y, deg=1)
+
+        fit = more_precise_linear_fit(X, Y)
         residuals = Y - np.polyval(fit, X)
         _chi2 = (residuals**2).sum() / SQUARE_TIME_ERROR_OF_COUNTER
         p_value = chi2.sf(_chi2, len(df) - 2)
