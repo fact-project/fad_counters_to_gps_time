@@ -53,16 +53,6 @@ def update_status_runinfo(fad_dir, runinfo):
     return runinfo
 
 
-def update_known_runs(fad_dir, known_runs_file_name='known_runs.h5'):
-    known_runs_path = os.path.join(fad_dir, known_runs_file_name)
-    if os.path.exists(known_runs_path):
-        known_runs = pd.read_hdf(known_runs_path)
-    else:
-        known_runs = latest_runinfo()
-    known_runs = update_status_runinfo(fad_dir=fad_dir, runinfo=known_runs)
-    to_hdf(known_runs, known_runs_path)
-
-
 def to_hdf(df, path):
     df.to_hdf(path+'.part', 'all')
     shutil.move(path+'.part', path)
