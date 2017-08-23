@@ -16,10 +16,23 @@ SQUARE_TIME_ERROR_OF_COUNTER = 1e-8/12
 MAX_RESIDUAL_MEAN = 5e-6
 MAX_RESIDUAL_STD = np.sqrt(1e-5)
 MIN_P_VALUE = 1e-4
+COUNTER_MAX = 2**32
 
 
 def get_gps(df):
     return df[df.Trigger.isin([trigger.EXT1, trigger.EXT2])]
+
+
+def make_counter_strictly_monotonic_increasing(counter):
+    counter = counter.astype(np.int64)
+    w = np.where(counter.diff() < 0)[0]
+    if not w:
+        return counter
+    else:
+        v = counter.values
+        v[w[0]:] += COUNTER_MAX
+        counter = pd.Series(index=counter.index, data=v)
+        return counter
 
 
 def train_models(df):
@@ -57,6 +70,9 @@ def gps_time_reconstruction(
     df['time'] = pd.to_datetime(df.UnixTime, unit='s')
     df['time_rounded'] = df.UnixTime.round()
     df['time_diff'] = df.time_rounded - df.UnixTime
+    for board_id in range(40):
+        df['Counter_{0}'.format(board_id)] = make_counter_strictly_monotonic_increasing(
+            df['Counter_{0}'.format(board_id)])
 
     gps_set = get_gps(df)
     training_set = gps_set.sample(frac=2/3)
