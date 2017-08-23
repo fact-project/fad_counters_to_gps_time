@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import fad_counters_to_gps_time.gps_time_reconstruction as tr
 
 
 def test_date_range():
@@ -38,31 +39,15 @@ def test_polyfit_1deg_for_big_ints():
     a = (x - x_big_number) / 1e9
     y = y_big_number + (x - x_big_number) * 1e4/ 1e9
     y = (y_big_number - x_big_number * 1e-5) + x * 1e-5
-
-    alpha = y_big_number - x_big_number * 1e-5
-    beta = 1e-5
     '''
     alpha = y_big_number - x_big_number * 1e-5
     beta = 1e-5
 
     fit_big_ints = np.polyfit(x_ns_integers, y_counters, deg=1)
+    fit_smaller_ints = tr.more_precise_linear_fit(x_ns_integers, y_counters)
 
-    fit_smaller_ints = np.polyfit(
-        x_ns_integers - x_ns_integers[0],
-        y_counters - y_counters[0],
-        deg=1
-    )
-
-    fit_smaller_ints = (
-        fit_smaller_ints[0],
-        (fit_smaller_ints[1] +
-            y_counters[0] -
-            fit_smaller_ints[0]*x_ns_integers[0])
-    )
     assert np.abs((fit_smaller_ints[0] - beta) / beta) < 1e-15
     assert np.abs((fit_smaller_ints[1] - alpha) / alpha) < 1e-15
 
     assert np.abs((fit_big_ints[0] - beta) / beta) < 1e-9
     assert np.abs((fit_big_ints[1] - alpha) / alpha) < 1e-9
-
-
