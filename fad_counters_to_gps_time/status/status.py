@@ -19,12 +19,12 @@ def update_status_runinfo(fad_dir, runinfo):
     if 'FadCounterNumEvents' not in runinfo:
         runinfo['FadCounterNumEvents'] = np.uint32(0)
 
-    for index, row in tqdm(runinfo.iterrows()):
-        night = runinfo['fNight'][index]
-        run = runinfo['fRunID'][index]
+    for run in tqdm(runinfo.itertuples()):
+        night = run.fNight
+        run = run.fRunID
 
-        if runinfo['fRunTypeKey'][index] == OBSERVATION_RUN_KEY:
-            if runinfo['FadCounterNumEvents'][index] == 0:
+        if run.fRunTypeKey == OBSERVATION_RUN_KEY:
+            if run.FadCounterNumEvents == 0:
                 file_name = '{yyyymmnn:08d}_{rrr:03d}_fad.h5'.format(
                     yyyymmnn=night,
                     rrr=run
@@ -40,14 +40,15 @@ def update_status_runinfo(fad_dir, runinfo):
 
                 if os.path.exists(run_path):
                     runinfo.set_value(
-                        index,
+                        run.Index,
                         'FadCounterNumEvents',
                         number_of_events_in_fad_counter_run(run_path)
                     )
                     print(
-                        'New run '+str(night)+' '+str(run)+' '+
-                        str(runinfo['FadCounterNumEvents'][index])+
-                        ' events.'
+                        'New run {night} {run} {N} events.'.format(
+                            night=run.fNight,
+                            run=run.fRunID,
+                            N=run.FadCounterNumEvents)
                     )
     return runinfo
 
