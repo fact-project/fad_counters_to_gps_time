@@ -37,9 +37,6 @@ def make_run_path(run, base_dir, suffix='_fad.h5'):
 
 
 def update_status_runinfo(fad_dir, runinfo):
-    if 'FadCounterNumEvents' not in runinfo:
-        runinfo['FadCounterNumEvents'] = 0
-
     not_done_observation_runs = runinfo[
         (runinfo.FadCounterNumEvents == 0) &
         (runinfo.fRunTypeKey == OBSERVATION_RUN_KEY)
@@ -82,20 +79,20 @@ if __name__ == '__main__':
     fad_dir = os.path.dirname(os.path.realpath(__file__))
     known_runs_path = os.path.join(fad_dir, 'known_runs.h5')
 
-    if not os.path.exists(known_runs_path):
-        if args['--init']:
-            runinfo = latest_runinfo()
-            runinfo['FadCounterNumEvents'] = 0
-            to_hdf(runinfo, known_runs_path)
-        else:
-            print(
-                'This folder does not (yet) contain a known_runs.h5,'
-                ' call with --init to initialize.')
-            sys.exit(0)
+    if args['--init']:
+        runinfo = latest_runinfo()
+        runinfo['FadCounterNumEvents'] = 0
+        to_hdf(runinfo, known_runs_path)
 
-    while True:
-        known_runs = pd.read_hdf(known_runs_path)
-        known_runs = update_status_runinfo(fad_dir, known_runs)
-        to_hdf(known_runs, known_runs_path)
-        if not args['--keep-running']:
-            break
+    try:
+        while True:
+            known_runs = pd.read_hdf(known_runs_path)
+            known_runs = update_status_runinfo(fad_dir, known_runs)
+            to_hdf(known_runs, known_runs_path)
+            if not args['--keep-running']:
+                break
+    except FileNotFoundError:
+        print(
+            'This folder seems not to be initialized'
+            ' call again with --init to initialize.')
+        sys.exit(0)
