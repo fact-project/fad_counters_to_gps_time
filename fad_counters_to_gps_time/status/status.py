@@ -12,7 +12,7 @@ from fact import credentials
 
 def number_of_events_in_fad_counter_run(fad_run_path):
     fad_run = pd.read_hdf(fad_run_path)
-    return len(fad_run['Event'])
+    return len(fad_run)
 
 
 def update_status_runinfo(fad_dir, runinfo):
