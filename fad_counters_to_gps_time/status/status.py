@@ -15,41 +15,46 @@ def number_of_events_in_fad_counter_run(fad_run_path):
     return len(fad_run)
 
 
+def make_run_path(run, base_dir, suffix='_fad.h5'):
+    file_name = '{yyyymmnn:08d}_{rrr:03d}{suffix}'.format(
+        yyyymmnn=run.fNight,
+        rrr=run.fRunID,
+        suffix=suffix
+    )
+
+    run_path = os.path.join(
+        base_dir,
+        '{yyyy:04d}'.format(yyyy=night_id_2_yyyy(run.fNight)),
+        '{mm:02d}'.format(mm=night_id_2_mm(run.fNight)),
+        '{nn:02d}'.format(nn=night_id_2_nn(run.fNight)),
+        file_name
+    )
+    return run_path
+
+
 def update_status_runinfo(fad_dir, runinfo):
     if 'FadCounterNumEvents' not in runinfo:
         runinfo['FadCounterNumEvents'] = np.uint32(0)
 
-    for run in tqdm(runinfo.itertuples()):
-        night = run.fNight
-        run = run.fRunID
+    not_done_observation_runs = runinfo[
+        (runinfo.FadCounterNumEvents == 0) &
+        (runinfo.fRunTypeKey == OBSERVATION_RUN_KEY)
+    ]
 
-        if run.fRunTypeKey == OBSERVATION_RUN_KEY:
-            if run.FadCounterNumEvents == 0:
-                file_name = '{yyyymmnn:08d}_{rrr:03d}_fad.h5'.format(
-                    yyyymmnn=night,
-                    rrr=run
-                )
-
-                run_path = os.path.join(
-                    fad_dir,
-                    '{yyyy:04d}'.format(yyyy=night_id_2_yyyy(night)),
-                    '{mm:02d}'.format(mm=night_id_2_mm(night)),
-                    '{nn:02d}'.format(nn=night_id_2_nn(night)),
-                    file_name
-                )
-
-                if os.path.exists(run_path):
-                    runinfo.set_value(
-                        run.Index,
-                        'FadCounterNumEvents',
-                        number_of_events_in_fad_counter_run(run_path)
-                    )
-                    print(
-                        'New run {night} {run} {N} events.'.format(
-                            night=run.fNight,
-                            run=run.fRunID,
-                            N=run.FadCounterNumEvents)
-                    )
+    for run in tqdm(not_done_observation_runs.itertuples()):
+        run_path = make_run_path(run, base_dir=fad_dir)
+        if os.path.exists(run_path):
+            runinfo.set_value(
+                run.Index,
+                'FadCounterNumEvents',
+                number_of_events_in_fad_counter_run(run_path)
+            )
+            print(
+                'New run {night} {run} {N} events.'.format(
+                    night=run.fNight,
+                    run=run.fRunID,
+                    N=run.FadCounterNumEvents)
+            )
     return runinfo
 
 
