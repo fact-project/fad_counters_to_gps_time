@@ -63,9 +63,7 @@ def apply_models(models, df):
     return prediction.mean(axis=0)
 
 
-def gps_time_reconstruction(
-        path,
-        ):
+def gps_time_reconstruction(path):
     df = pd.read_hdf(path)
     df['time'] = pd.to_datetime(df.UnixTime, unit='s')
     df['time_rounded'] = df.UnixTime.round()
@@ -98,11 +96,13 @@ def gps_time_reconstruction(
 def write_gps_time_reconstruction(fad_counter_path, gps_time_path, models_path):
     gps_time, models = gps_time_reconstruction(fad_counter_path)
 
-    os.makedirs(os.path.split(gps_time_path)[0], exist_ok=True)
+    _dir = os.path.split(os.path.abspath(gps_time_path))[0]
+    os.makedirs(_dir, exist_ok=True)
     gps_time.to_hdf(gps_time_path+'.part', 'all')
     shutil.move(gps_time_path+'.part', gps_time_path)
 
-    os.makedirs(os.path.split(models_path)[0], exist_ok=True)
+    _dir = os.path.split(os.path.abspath(models_path))[0]
+    os.makedirs(_dir, exist_ok=True)
     models.to_hdf(models_path+'.part', 'all')
     shutil.move(models_path+'.part', models_path)
 
