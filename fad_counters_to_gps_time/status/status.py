@@ -44,12 +44,6 @@ def update_status_runinfo(fad_dir, runinfo):
                 'FadCounterNumEvents',
                 len(pd.read_hdf(run_path))
             )
-            print(
-                'New run {night} {run} {N} events.'.format(
-                    night=run.fNight,
-                    run=run.fRunID,
-                    N=run.FadCounterNumEvents)
-            )
     return runinfo
 
 
