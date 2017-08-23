@@ -20,9 +20,19 @@ def test_pd_datetime_subtract():
     assert time_delta.value == 5
 
 
-def test_number_of_bits_smaller_64():
+def test_number_of_bits_smaller_64_future():
     now = pd.Timestamp(time.time(), unit='s')
-    plus_100_years = pd.Timedelta(weeks=5200)
-    in_100_years = now + plus_100_years
+    delta_100_years = pd.Timedelta(weeks=5200)
+    in_100_years = now + delta_100_years
     bits_needed = np.log(in_100_years.value)/np.log(2)
+    assert bits_needed < 64
+
+
+def test_number_of_bits_smaller_64_past():
+    now = pd.Timestamp(time.time(), unit='s')
+    delta_100_years = pd.Timedelta(weeks=5200)
+    _100_years_ago = now - delta_100_years
+
+    assert _100_years_ago.value < 2
+    bits_needed = np.log(_100_years_ago.value * -1)/np.log(2)
     assert bits_needed < 64
