@@ -10,10 +10,6 @@ from ..production.make_job_list import night_id_2_nn
 from fact import credentials
 
 
-def number_of_events_in_fad_counter_run(fad_run_path):
-    return len(pd.read_hdf(fad_run_path))
-
-
 def make_run_path(run, base_dir, suffix='_fad.h5'):
     file_name = '{yyyymmnn:08d}_{rrr:03d}{suffix}'.format(
         yyyymmnn=run.fNight,
@@ -46,7 +42,7 @@ def update_status_runinfo(fad_dir, runinfo):
             runinfo.set_value(
                 run.Index,
                 'FadCounterNumEvents',
-                number_of_events_in_fad_counter_run(run_path)
+                len(pd.read_hdf(run_path))
             )
             print(
                 'New run {night} {run} {N} events.'.format(
