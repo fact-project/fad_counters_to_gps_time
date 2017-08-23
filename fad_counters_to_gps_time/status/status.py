@@ -15,6 +15,7 @@ from fact import credentials
 from docopt import docopt
 import sys
 
+
 def make_run_path(run, base_dir, suffix='_fad.h5'):
     night = '{:08d}'.format(run.fNight)
     run_id = '{:03d}'.format(run.fRunID)
