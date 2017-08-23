@@ -17,13 +17,7 @@ def number_of_events_in_fad_counter_run(fad_run_path):
 
 def update_status_runinfo(fad_dir, runinfo):
     if 'FadCounterNumEvents' not in runinfo:
-        runinfo['FadCounterNumEvents'] = pd.Series(
-            np.zeros(
-                len(runinfo['fRunID']),
-                dtype=np.uint32
-            ),
-            index=runinfo.index
-        )
+        runinfo['FadCounterNumEvents'] = np.uint32(0)
 
     for index, row in tqdm(runinfo.iterrows()):
         night = runinfo['fNight'][index]
