@@ -77,7 +77,6 @@ def latest_runinfo():
 
 if __name__ == '__main__':
     args = docopt(__doc__)
-    print(args)
 
     fad_dir = os.path.dirname(os.path.realpath(__file__))
     known_runs_path = os.path.join(fad_dir, 'known_runs.h5')
@@ -99,4 +98,3 @@ if __name__ == '__main__':
         to_hdf(known_runs, known_runs_path)
         if not args['--keep-running']:
             break
-
