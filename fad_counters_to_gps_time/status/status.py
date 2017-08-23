@@ -11,8 +11,7 @@ from fact import credentials
 
 
 def number_of_events_in_fad_counter_run(fad_run_path):
-    fad_run = pd.read_hdf(fad_run_path)
-    return len(fad_run)
+    return len(pd.read_hdf(fad_run_path))
 
 
 def make_run_path(run, base_dir, suffix='_fad.h5'):
