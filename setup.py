@@ -28,7 +28,8 @@ setup(
         'matplotlib',
         'pyfact',
         'pandas',
-        'tqdm'
+        'tqdm',
+        'photon_stream',
     ],
     zip_safe=False,
     entry_points={'console_scripts': [
