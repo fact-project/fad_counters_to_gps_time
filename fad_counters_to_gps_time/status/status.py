@@ -63,7 +63,8 @@ def latest_runinfo():
     print("Reading fresh RunInfo table, takes about 1min.")
     return pd.read_sql_table("RunInfo", factdb)
 
-if __name__ == '__main__':
+
+def main():
     args = docopt(__doc__)
 
     fad_dir = os.path.dirname(os.path.realpath(__file__))
@@ -86,3 +87,6 @@ if __name__ == '__main__':
             'This folder seems not to be initialized'
             ' call again with --init to initialize.')
         sys.exit(0)
+
+if __name__ == '__main__':
+    main()
