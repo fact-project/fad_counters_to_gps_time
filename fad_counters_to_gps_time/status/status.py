@@ -21,9 +21,9 @@ def update_status_runinfo(fad_dir, runinfo):
     if 'FadCounterNumEvents' not in ri:
         ri['FadCounterNumEvents'] = pd.Series(
             np.zeros(
-                len(ri['fRunID']), 
+                len(ri['fRunID']),
                 dtype=np.uint32
-            ), 
+            ),
             index=ri.index
         )
 
@@ -39,17 +39,17 @@ def update_status_runinfo(fad_dir, runinfo):
                 )
 
                 run_path = os.path.join(
-                    fad_dir, 
-                    '{yyyy:04d}'.format(yyyy=night_id_2_yyyy(night)), 
-                    '{mm:02d}'.format(mm=night_id_2_mm(night)), 
-                    '{nn:02d}'.format(nn=night_id_2_nn(night)), 
+                    fad_dir,
+                    '{yyyy:04d}'.format(yyyy=night_id_2_yyyy(night)),
+                    '{mm:02d}'.format(mm=night_id_2_mm(night)),
+                    '{nn:02d}'.format(nn=night_id_2_nn(night)),
                     file_name
                 )
 
-                if os.path.exists(run_path):    
+                if os.path.exists(run_path):
                     ri.set_value(
-                        index, 
-                        'FadCounterNumEvents', 
+                        index,
+                        'FadCounterNumEvents',
                         number_of_events_in_fad_counter_run(run_path)
                     )
                     print(
@@ -64,9 +64,9 @@ def update_known_runs(fad_dir, known_runs_file_name='known_runs.h5'):
     known_runs_path = os.path.join(fad_dir, known_runs_file_name)
     if os.path.exists(known_runs_path):
         known_runs = pd.read_hdf(known_runs_path)
-    else:   
+    else:
         known_runs = latest_runinfo()
-    known_runs = update_status_runinfo(fad_dir=fad_dir, runinfo=known_runs) 
+    known_runs = update_status_runinfo(fad_dir=fad_dir, runinfo=known_runs)
     known_runs.to_hdf(known_runs_path+'.part', 'all')
     shutil.move(known_runs_path+'.part', known_runs_path)
 
