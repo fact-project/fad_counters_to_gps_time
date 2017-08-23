@@ -29,7 +29,7 @@ def make_run_path(run, base_dir, suffix='_fad.h5'):
 
 def update_status_runinfo(fad_dir, runinfo):
     if 'FadCounterNumEvents' not in runinfo:
-        runinfo['FadCounterNumEvents'] = np.uint32(0)
+        runinfo['FadCounterNumEvents'] = 0
 
     not_done_observation_runs = runinfo[
         (runinfo.FadCounterNumEvents == 0) &
