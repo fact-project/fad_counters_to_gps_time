@@ -37,5 +37,6 @@ setup(
             'production.worker_node_fad_counter_extraction_main:main'),
         ('gps_time_reconstruction = fad_counters_to_gps_time.' +
             'gps_time_reconstruction.__init__:main'),
+        'fad_counter_status_update = fad_counters_to_gps_time.status.status:main',
     ]},
 )

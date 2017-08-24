@@ -1,77 +1,92 @@
-import numpy as np
+"""
+Usage:
+  fad_counter_status_update [options]
+
+Options:
+  --init              Initialize
+  -k, --keep-running  keep updating
+"""
 import pandas as pd
 import os
 import shutil
 from tqdm import tqdm
 from ..production.make_job_list import OBSERVATION_RUN_KEY
-from ..production.make_job_list import night_id_2_yyyy
-from ..production.make_job_list import night_id_2_mm
-from ..production.make_job_list import night_id_2_nn
 from fact import credentials
+from docopt import docopt
+import sys
 
 
-def number_of_events_in_fad_counter_run(fad_run_path):
-    fad_run = pd.read_hdf(fad_run_path)
-    return len(fad_run['Event'])
+def make_run_path(run, base_dir, suffix='_fad.h5'):
+    night = '{:08d}'.format(run.fNight)
+    run_id = '{:03d}'.format(run.fRunID)
+
+    return os.path.join(
+        base_dir,
+        '{yyyy}',
+        '{mm}',
+        '{nn}',
+        '{night}_{run_id}{suffix}'
+    ).format(
+        night=night,
+        run_id=run_id,
+        yyyy=night[0:4],
+        mm=night[4:6],
+        nn=night[6:8],
+        suffix=suffix,
+    )
 
 
 def update_status_runinfo(fad_dir, runinfo):
-    ri = runinfo
+    not_done_observation_runs = runinfo[
+        (runinfo.FadCounterNumEvents == 0) &
+        (runinfo.fRunTypeKey == OBSERVATION_RUN_KEY)
+    ]
 
-    if 'FadCounterNumEvents' not in ri:
-        ri['FadCounterNumEvents'] = pd.Series(
-            np.zeros(
-                len(ri['fRunID']), 
-                dtype=np.uint32
-            ), 
-            index=ri.index
-        )
-
-    for index, row in tqdm(ri.iterrows()):
-        night = ri['fNight'][index]
-        run = ri['fRunID'][index]
-
-        if ri['fRunTypeKey'][index] == OBSERVATION_RUN_KEY:
-            if ri['FadCounterNumEvents'][index] == 0:
-                file_name = '{yyyymmnn:08d}_{rrr:03d}_fad.h5'.format(
-                    yyyymmnn=night,
-                    rrr=run
-                )
-
-                run_path = os.path.join(
-                    fad_dir, 
-                    '{yyyy:04d}'.format(yyyy=night_id_2_yyyy(night)), 
-                    '{mm:02d}'.format(mm=night_id_2_mm(night)), 
-                    '{nn:02d}'.format(nn=night_id_2_nn(night)), 
-                    file_name
-                )
-
-                if os.path.exists(run_path):    
-                    ri.set_value(
-                        index, 
-                        'FadCounterNumEvents', 
-                        number_of_events_in_fad_counter_run(run_path)
-                    )
-                    print(
-                        'New run '+str(night)+' '+str(run)+' '+
-                        str(ri['FadCounterNumEvents'][index])+
-                        ' events.'
-                    )
-    return ri
+    for run in tqdm(not_done_observation_runs.itertuples()):
+        run_path = make_run_path(run, base_dir=fad_dir)
+        if os.path.exists(run_path):
+            runinfo.set_value(
+                run.Index,
+                'FadCounterNumEvents',
+                len(pd.read_hdf(run_path))
+            )
+    return runinfo
 
 
-def update_known_runs(fad_dir, known_runs_file_name='known_runs.h5'):
-    known_runs_path = os.path.join(fad_dir, known_runs_file_name)
-    if os.path.exists(known_runs_path):
-        known_runs = pd.read_hdf(known_runs_path)
-    else:   
-        known_runs = latest_runinfo()
-    known_runs = update_status_runinfo(fad_dir=fad_dir, runinfo=known_runs) 
-    known_runs.to_hdf(known_runs_path+'.part', 'all')
-    shutil.move(known_runs_path+'.part', known_runs_path)
+def to_hdf(df, path):
+    df.to_hdf(path+'.part', 'all')
+    shutil.move(path+'.part', path)
 
 
 def latest_runinfo():
     factdb = credentials.create_factdb_engine()
     print("Reading fresh RunInfo table, takes about 1min.")
     return pd.read_sql_table("RunInfo", factdb)
+
+
+def main():
+    args = docopt(__doc__)
+
+    fad_dir = os.path.dirname(os.path.realpath(__file__))
+    known_runs_path = os.path.join(fad_dir, 'known_runs.h5')
+
+    if args['--init']:
+        runinfo = latest_runinfo()
+        runinfo['FadCounterNumEvents'] = 0
+        to_hdf(runinfo, known_runs_path)
+
+    try:
+        while True:
+            known_runs = pd.read_hdf(known_runs_path)
+            known_runs = update_status_runinfo(fad_dir, known_runs)
+            to_hdf(known_runs, known_runs_path)
+            if not args['--keep-running']:
+                break
+    except FileNotFoundError:
+        print(
+            'This folder seems not to be initialized'
+            ' call again with --init to initialize.')
+        sys.exit(0)
+
+if __name__ == '__main__':
+    main()
