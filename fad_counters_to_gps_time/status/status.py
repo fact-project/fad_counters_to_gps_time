@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+import shutil
 from tqdm import tqdm
 from ..production.make_job_list import OBSERVATION_RUN_KEY
 from ..production.make_job_list import night_id_2_yyyy
@@ -11,7 +12,7 @@ from fact import credentials
 
 def number_of_events_in_fad_counter_run(fad_run_path):
     fad_run = pd.read_hdf(fad_run_path)
-    return len(ri['Event'])
+    return len(fad_run['Event'])
 
 
 def update_status_runinfo(fad_dir, runinfo):
@@ -60,7 +61,7 @@ def update_status_runinfo(fad_dir, runinfo):
 
 
 def update_known_runs(fad_dir, known_runs_file_name='known_runs.h5'):
-    known_runs_path = join(fad_dir, known_runs_file_name)
+    known_runs_path = os.path.join(fad_dir, known_runs_file_name)
     if os.path.exists(known_runs_path):
         known_runs = pd.read_hdf(known_runs_path)
     else:   
