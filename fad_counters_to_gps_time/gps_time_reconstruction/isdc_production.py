@@ -58,7 +58,7 @@ def assign_paths_to_runinfo(runinfo, input_dir, out_dir):
 
     have_no_paths = runinfo[~runinfo.has_paths]
     for job in tqdm(
-            have_no_paths.itertuples(), 
+            have_no_paths.itertuples(),
             desc='assign_paths:',
             total=len(have_no_paths)
         ):
@@ -171,7 +171,7 @@ def update_runinfo(path):
     m.has_paths.fillna(False, inplace=True)
     m.input_file_exists.fillna(False, inplace=True)
     m.output_file_exists.fillna(False, inplace=True)
-    return new_runinfo
+    return m
 
 
 def initialize_runinfo(path):
@@ -200,7 +200,6 @@ def initialize_runinfo(path):
 
 def main():
     args = docopt(__doc__)
-    logging.info(str(args))
     out_dir = abspath(args['--output'])
     input_dir = abspath(args['--input'])
     runinfo_path = join(out_dir, 'runinfo.h5')
@@ -209,7 +208,7 @@ def main():
 
     if args['--init']:
         runinfo = initialize_runinfo(runinfo_path)
-    
+
     if not exists(runinfo_path):
         logging.error('runinfo file does not exist. Call with --init first')
         sys.exit(-1)
@@ -224,36 +223,16 @@ def main():
     runinfo = check_for_output_files(runinfo)
     runinfo = check_length_of_output(runinfo)
 
-
-    logging.info(
-        '{0} runinfo'.format(
-            len(runinfo)))
-
     runs_with_input = runinfo[runinfo.input_file_exists]
-    logging.info(
-        '{0} runs_with_input'.format(
-            len(runs_with_input)))
-
-    runs_with_output = runs_with_input[runs_with_input.output_file_exists]
-    logging.info(
-        '{0} runs_with_output'.format(
-            len(runs_with_output)))
-
     runs_without_output = runs_with_input[~runs_with_input.output_file_exists]
-    logging.info(
-        '{0} runs_without_output'.format(
-            len(runs_without_output)))
+    runs_not_yet_submitted = runs_without_output[
+        np.isnat(runs_without_output.submitted_at)
+    ]
 
-    runs_not_yet_submitted = runs_without_output[np.isnat(runs_without_output.submitted_at)]
-    logging.info(
-        '{0} runs_not_yet_submitted'.format(
-            len(runs_not_yet_submitted)))
-
-    to_bet_submitted = runs_not_yet_submitted.sample(frac=0.1)
     for job in tqdm(
-        to_bet_submitted.itertuples(),
+        runs_not_yet_submitted.itertuples(),
         desc='submitting:',
-        total=len(to_bet_submitted)
+        total=len(runs_not_yet_submitted)
     ):
         qsub(job)
         runinfo.set_value(
