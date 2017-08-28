@@ -114,18 +114,33 @@ def main():
         '''.format(OBSERVATION_RUN_KEY),
         create_factdb_engine()
     )
-    logging.info('{0} observation runs found in RunInfo DB'.format(len(runinfo)))
+    logging.info(
+        '{0} observation runs found in RunInfo DB'.format(
+            len(runinfo)))
 
     jobs = make_job_list(
         out_dir,
         fad_counter_dir,
         runinfo
     )
-    logging.info('for {0} of the {1} observation runs, the input file exists'.format(
-        len(runinfo),
-        len(jobs)))
+    logging.info(
+        'for {0} of the {1} observation runs, the input file exists'.format(
+            len(runinfo),
+            len(jobs)))
 
-    qsub(jobs)
+    jobs['output_already_exists'] = jobs.gps_time_path.apply(exists)
+    jobs_without_output = jobs[~job.output_already_exists]
+
+    logging.info((
+        'for {0} of the {1} observation runs, ' +
+        'where the input file exists, ' +
+        'no output file exists yet.'
+        ).format(
+            len(jobs_without_output),
+            len(jobs)
+            ))
+
+    qsub(jobs_without_output)
 
 if __name__ == '__main__':
     main()
