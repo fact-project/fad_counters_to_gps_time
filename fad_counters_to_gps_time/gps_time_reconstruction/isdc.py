@@ -2,10 +2,8 @@ from tqdm import tqdm
 import os
 import os.path
 from os.path import dirname
-from .dummy_qsub import dummy_qsub
 import subprocess as sp
 from shutil import which
-from ..copy_readmes import copy_top_level_readme_to
 
 
 def qsub(jobs, queue='fact_medium'):
