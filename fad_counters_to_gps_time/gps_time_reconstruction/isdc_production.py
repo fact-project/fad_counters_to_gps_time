@@ -42,6 +42,7 @@ WHERE
     fRunTypeKey={0}
 '''.format(OBSERVATION_RUN_KEY)
 
+
 def copy_top_level_readme_to(path):
     readme_res_path = pkg_resources.resource_filename(
         'fad_counters_to_gps_time',
