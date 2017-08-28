@@ -60,7 +60,7 @@ def assign_paths_to_runinfo(runinfo, input_dir, out_dir):
             have_no_paths.itertuples(),
             desc='assign_paths:',
             total=len(have_no_paths)
-        ):
+    ):
         for name, generator in path_generators.items():
             runinfo.set_value(
                 job.Index,
