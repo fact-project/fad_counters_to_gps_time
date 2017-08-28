@@ -19,6 +19,11 @@ MIN_P_VALUE = 1e-4
 COUNTER_MAX = 2**32
 
 
+class TooFewGpsEvents(Exception):
+    '''Raised when input file has not enough GPS events'''
+    pass
+
+
 def get_gps(df):
     return df[df.Trigger.isin([trigger.EXT1, trigger.EXT2])]
 
@@ -80,6 +85,8 @@ def gps_time_reconstruction(path):
             df['Counter_{0}'.format(board_id)])
 
     gps_set = get_gps(df)
+    if len(gps_set) < 10:
+        raise TooFewGpsEvents
     training_set = gps_set.sample(frac=2/3)
     models = train_models(training_set)
     df['GpsTime'] = apply_models(models, df)
