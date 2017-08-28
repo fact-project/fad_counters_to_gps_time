@@ -4,6 +4,26 @@ from: https://github.com/fact-project/fad_counters_to_gps_time
 
 ## Start Production at ISDC:
 
+Have a look at the help to see how it works:
+
+    neise@isdc-in04:~$ produce_gps_time_at_isdc --help
+    Usage:
+        isdc_production [options]
+
+    Options:
+        -o, --output DIR  output_directory [default: /gpfs0/fact/processing/gps_time]
+        -i, --input DIR   input directory [default: /gpfs0/fact/processing/fad_counters/fad]
+        -f, --fraction F  fraction of possible jobs to submit [default: 1.0]
+
+The input and output default paths, are here mainly for documentary purposes.
+Changing the input path, will most probably not help you at all, but of course
+you can decide to write the output somewhere else.
+
+The `--fraction` parameter is also mainly there for testing purposes.
+
+At the moment `produce_gps_time_at_isdc` is quite verbose.
+Have a look at an example output.
+
 Process accurate, GPS based time stamps for all FACT events using the GPS trigger and the 40 FAD counters of the FACT camera.
 
 This is the Sub-README from [here](https://github.com/fact-project/fad_counters_to_gps_time/tree/gps_time_reco/fad_counters_to_gps_time/gps_time_reconstruction).
