@@ -45,8 +45,10 @@ def assign_paths_to_runinfo(run_info, input_dir, out_dir):
         'input_file_path': TreePath(base_dir=input_dir, suffix='_fad.h5'),
         'std_out_path': TreePath(join(out_dir, 'std'), suffix='.o'),
         'std_err_path': TreePath(join(out_dir, 'std'), suffix='.e'),
-        'gps_time_path': TreePath(join(out_dir, 'gps_time'), suffix='_gps_time.h5'),
-        'models_path': TreePath(join(out_dir, 'gps_time_models'), suffix='_models.h5'),
+        'gps_time_path':
+            TreePath(join(out_dir, 'gps_time'), suffix='_gps_time.h5'),
+        'models_path':
+            TreePath(join(out_dir, 'gps_time_models'), suffix='_models.h5'),
     }
 
     for job in run_info.itertuples():
