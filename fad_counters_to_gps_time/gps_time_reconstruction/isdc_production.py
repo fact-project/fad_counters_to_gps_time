@@ -1,3 +1,12 @@
+#!/bin/env python
+"""
+Usage:
+    isdc_production [options]
+
+Options:
+    -o, --output DIR  output_directory(default:/gpfs0/fact/processing/gps_time)
+    -i, --input DIR   input directory(default:/gpfs0/fact/processing/fad_counters/fad)
+"""
 import os
 from os.path import abspath
 from os.path import join
@@ -11,7 +20,7 @@ import pandas as pd
 from tqdm import tqdm
 from fact.path import TreePath
 from fact.credentials import create_factdb_engine
-
+from docopt import docopt
 
 OBSERVATION_RUN_KEY = 1
 
@@ -26,14 +35,11 @@ def copy_top_level_readme_to(path):
 
 def make_job_list(
     out_dir,
+    fad_counter_dir,
     run_info,
     only_a_fraction=1.0,
-    fad_counter_dir='/gpfs0/fact/processing/fad_counters/fad',
     tmp_dir_base_name='gps_time_reco_',
 ):
-    out_dir = abspath(out_dir)
-    fad_counter_dir = abspath(fad_counter_dir)
-
     jobs = run_info[
         run_info.fRunTypeKey == OBSERVATION_RUN_KEY
         ].sample(frac=only_a_fraction).copy()
@@ -81,19 +87,24 @@ def qsub(jobs, queue='fact_medium'):
 
 
 def main():
-    out_dir = '/gpfs0/fact/processing/gps_time'
+    args = docopt.docopt(__doc__)
+    out_dir = abspath(args['--output'])
+    fad_counter_dir = abspath(args['--input'])
+
     os.makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
-    production_store_path = join(out_dir, 'production_store.h5')
 
-    if not exists(production_store_path):
-        runinfo = pd.read_sql_table(
-            'RunInfo',
-            create_factdb_engine())
-        runinfo['submission_time'] = pd.Timestamp(float('nan'))
-        runinfo.to_hdf(production_store_path, 'all')
+    runinfo = pd.read_sql(
+        '''
+        SELECT fNight, fRunID, fRunTypeKey from RunInfo
+        ''',
+        create_factdb_engine()
+    )
 
-    production_store = pd.read_hdf(production_store_path)
-    jobs = make_job_list(out_dir, production_store)
+    jobs = make_job_list(
+        out_dir,
+        fad_counter_dir,
+        runinfo
+    )
 
     qsub(jobs)
