@@ -108,3 +108,6 @@ def main():
     )
 
     qsub(jobs)
+
+if __name__ == '__main__':
+    main()
