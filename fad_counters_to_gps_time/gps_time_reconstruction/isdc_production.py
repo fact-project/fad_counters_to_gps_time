@@ -57,7 +57,7 @@ def assign_paths_to_runinfo(runinfo, input_dir, out_dir):
     }
 
     have_no_paths = runinfo[~runinfo.has_paths]
-    for job in tqdm(have_no_paths, total=len(have_no_paths)):
+    for job in tqdm(have_no_paths.itertuples(), total=len(have_no_paths)):
         for name, generator in path_generators.items():
             runinfo.set_value(
                 job.Index,
