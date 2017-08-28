@@ -12,6 +12,7 @@ from os.path import abspath
 from os.path import join
 from os.path import exists
 from os.path import dirname
+from datetime import datetime
 import shutil
 import pkg_resources
 from shutil import which
@@ -58,6 +59,13 @@ def assign_paths_to_runinfo(run_info, input_dir, out_dir):
 def qsub(runinfo, queue='fact_medium'):
 
     for job in tqdm(runinfo.itertuples(), total=len(runinfo)):
+        if not job.input_file_exists:
+            continue
+        if job.output_already_exists:
+            continue
+        if job.is_output_status_ok:
+            continue
+
         os.makedirs(dirname(job.std_out_path), exist_ok=True)
         os.makedirs(dirname(job.std_err_path), exist_ok=True)
 
@@ -74,6 +82,11 @@ def qsub(runinfo, queue='fact_medium'):
 
         try:
             sp.check_output(cmd, stderr=sp.STDOUT)
+            runinfo.set_value(
+                job.Index,
+                'submitted_at',
+                datetime.utcnow()
+                )
         except sp.CalledProcessError as e:
             print('returncode', e.returncode)
             print('output', e.output)
@@ -116,26 +129,13 @@ def main():
 
     runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
     runinfo['input_file_exists'] = runinfo.input_file_path.apply(exists)
-    runinfo = runinfo[runinfo.input_file_exists]
-
-    logging.info(
-        'for {0} of the {1} observation runs, the input file exists'.format(
-            len(runinfo),
-            len(runinfo)))
-
     runinfo['output_already_exists'] = runinfo.gps_time_path.apply(exists)
-    jobs_without_output = runinfo[~runinfo.output_already_exists]
+    runinfo['is_output_status_ok'] = runinfo.apply(status)
+    runinfo['submitted_at'] = pd.TimeStamp(float('nan'))
 
-    logging.info((
-        'for {0} of the {1} observation runs, ' +
-        'where the input file exists, ' +
-        'no output file exists yet.'
-        ).format(
-            len(jobs_without_output),
-            len(runinfo)
-            ))
+    qsub(runinfo)
 
-    qsub(jobs_without_output)
+    runinfo.to_hdf(join(out_dir, 'runinfo.h5'), 'all')
 
 if __name__ == '__main__':
     main()
