@@ -7,7 +7,6 @@ Options:
     -o, --output DIR  output_directory [default: /gpfs0/fact/processing/gps_time]
     -i, --input DIR   input directory [default: /gpfs0/fact/processing/fad_counters/fad]
     --init            initialize the runinfo storage for this processing
-    --update          update the runingfo storage for this processing from DB
 """
 import os
 import sys
@@ -213,20 +212,16 @@ def main():
         logging.error('runinfo file does not exist. Call with --init first')
         sys.exit(-1)
 
-    if args['--update']:
-        runinfo = update_runinfo(runinfo_path)
-    else:
-        runinfo = pd.read_hdf(runinfo_path)
-
+    runinfo = update_runinfo(runinfo_path)
     runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
     runinfo = check_for_input_files(runinfo)
     runinfo = check_for_output_files(runinfo)
     runinfo = check_length_of_output(runinfo)
 
-    runs_with_input = runinfo[runinfo.input_file_exists]
-    runs_without_output = runs_with_input[~runs_with_input.output_file_exists]
-    runs_not_yet_submitted = runs_without_output[
-        np.isnat(runs_without_output.submitted_at)
+    runs_not_yet_submitted = runinfo[
+        runinfo.input_file_exists &
+        (~runinfo.output_file_exists) &
+        np.isnat(runinfo.submitted_at)
     ]
 
     for job in tqdm(
