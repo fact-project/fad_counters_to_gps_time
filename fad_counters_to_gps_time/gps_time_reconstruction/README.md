@@ -1,6 +1,8 @@
 # FACT FAD counters to GPS time
 
-https://github.com/fact-project/fad_counters_to_gps_time
+from: https://github.com/fact-project/fad_counters_to_gps_time
+
+## Start Production at ISDC:
 
 Process accurate, GPS based time stamps for all FACT events using the GPS trigger and the 40 FAD counters of the FACT camera.
 
