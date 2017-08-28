@@ -124,7 +124,7 @@ def main():
         create_factdb_engine()
     )
     logging.info(
-        '{0} observation runs found in RunInfo DB'.format(
+        '{0} runinfo'.format(
             len(runinfo)))
 
     runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
@@ -135,11 +135,25 @@ def main():
     runinfo['submitted_at'] = pd.Timestamp('nat')
 
     runs_with_input = runinfo[runinfo.input_file_exists]
-    runs_without_output = runs_with_input[~runs_with_input.is_output_status_ok]
+    logging.info(
+        '{0} runs_with_input'.format(
+            len(runs_with_input)))
 
+    runs_without_output = runs_with_input[~runs_with_input.is_output_status_ok]
+    logging.info(
+        '{0} runs_without_output'.format(
+            len(runs_without_output)))
+
+    runs_not_yet_submitted = runs_without_output[
+        ~(runs_without_output.submitted_at < datetime.utcnow())]
+    logging.info(
+        '{0} runs_not_yet_submitted'.format(
+            len(runs_not_yet_submitted)))
+
+    to_bet_submitted = runs_not_yet_submitted.sample(frac=0.1)
     for job in tqdm(
-        runs_without_output.itertuples(),
-        total=len(runs_without_output)
+        to_bet_submitted.itertuples(),
+        total=len(to_bet_submitted)
     ):
         qsub(job)
         runinfo.set_value(
