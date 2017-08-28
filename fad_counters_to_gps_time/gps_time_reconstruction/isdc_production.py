@@ -6,8 +6,11 @@ Usage:
 Options:
     -o, --output DIR  output_directory [default: /gpfs0/fact/processing/gps_time]
     -i, --input DIR   input directory [default: /gpfs0/fact/processing/fad_counters/fad]
+    --init            initialize the runinfo storage for this processing
+    --update          update the runingfo storage for this processing from DB
 """
 import os
+import sys
 from os.path import abspath
 from os.path import join
 from os.path import exists
@@ -23,6 +26,7 @@ from fact.path import TreePath
 from fact.credentials import create_factdb_engine
 from docopt import docopt
 import logging
+import numpy as np
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -30,8 +34,6 @@ logging.basicConfig(
 )
 
 OBSERVATION_RUN_KEY = 1
-runinfo = None
-
 
 def copy_top_level_readme_to(path):
     readme_res_path = pkg_resources.resource_filename(
@@ -86,34 +88,69 @@ def qsub(job, queue='fact_medium'):
         raise
 
 
-def status(job):
-    try:
-        df = pd.read_hdf(job.gps_time_path)
-        return len(df) == job.fNumEvents
-    except:
-        return False
+def runinfo_update_input_file_exists(runinfo):
+    unknown_input_files = runinfo[np.isnan(runinfo.input_file_exists)]
+    for run in unknown_input_files.itertuples():
+        try:
+            runinfo.set_value(
+                run.Index,
+                'input_file_exists',
+                float(exists(run.input_file_path))
+                )
+        except:
+            logging.exception('during runinfo_update_input_file_exists')
 
 
-def len_of_hdf(job):
-    try:
-        df = pd.read_hdf(job.gps_time_path)
-        return float(len(df))
-    except:
-        return float('nan')
+def runinfo_update_output_file_exists(runinfo):
+    todo = runinfo[np.isnan(runinfo.output_file_exists)]
+    for run in todo.itertuples():
+        try:
+            runinfo.set_value(
+                run.Index,
+                'output_file_exists',
+                float(exists(run.gps_time_path))
+                )
+        except:
+            logging.exception('during runinfo_update_output_file_exists')
 
 
-def main():
-    args = docopt(__doc__)
-    logging.info(str(args))
-    global runinfo
+def runinfo_update_length_of_output(runinfo):
+    todo = runinfo[np.isnan(runinfo.length_of_output)]
+    todo = todo[todo.output_file_exists]
+    for run in tqdm(todo.itertuples(), total=len(todo)):
+        try:
+            runinfo.set_value(
+                run.Index,
+                'length_of_output',
+                float(len(pd.read_hdf(run.gps_time_path)))
+                )
+        except:
+            logging.exception('during runinfo_update_length_of_output')
 
-    out_dir = abspath(args['--output'])
-    input_dir = abspath(args['--input'])
 
-    os.makedirs(out_dir, exist_ok=True)
-    copy_top_level_readme_to(join(out_dir, 'README.md'))
-
+def update_runinfo(path):
     logging.info('downloading list of observation runs ... ')
+    old_runinfo = pd.read_hdf(path)
+    db = create_factdb_engine()
+    new_runinfo = pd.read_sql(
+        '''
+        SELECT
+            fNight, fRunID, fNumEvents
+        FROM
+            RunInfo
+        WHERE
+            fRunTypeKey={0}
+        '''.format(OBSERVATION_RUN_KEY),
+    )
+    db.close()
+    new_runinfo = new_runinfo.merge(
+        old_runinfo,
+        on=['fNight', 'fRunID'])
+    new_runinfo.to_hdf(path, 'all')
+
+
+def initialize_runinfo(path):
+    db = create_factdb_engine()
     runinfo = pd.read_sql(
         '''
         SELECT
@@ -123,17 +160,44 @@ def main():
         WHERE
             fRunTypeKey={0}
         '''.format(OBSERVATION_RUN_KEY),
-        create_factdb_engine()
     )
+    db.close()
+    runinfo['input_file_exists'] = float('nan')
+    runinfo['output_already_exists'] = float('nan')
+    runinfo['length_of_output'] = float('nan')
+    runinfo['submitted_at'] = pd.Timestamp('nat')
+    runinfo.to_hdf(path, 'all')
+
+
+def main():
+    args = docopt(__doc__)
+    logging.info(str(args))
+    out_dir = abspath(args['--output'])
+    input_dir = abspath(args['--input'])
+    runinfo_path = join(out_dir, 'runinfo.h5')
+    os.makedirs(out_dir, exist_ok=True)
+    copy_top_level_readme_to(join(out_dir, 'README.md'))
+
+    if args['--init']:
+        initialize_runinfo(runinfo_path)
+
+    if not exists(runinfo_path):
+        logging.error('runinfo file does not exist. Call with --init first')
+        sys.exit(-1)
+
+    if args['--update']:
+        update_runinfo(runinfo_path)
+
+    runinfo = pd.read_hdf(runinfo_path)
     logging.info(
         '{0} runinfo'.format(
             len(runinfo)))
 
     runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
-    runinfo['input_file_exists'] = runinfo.input_file_path.apply(exists)
-    runinfo['output_already_exists'] = runinfo.gps_time_path.apply(exists)
-    # this takes quite long
-    #runinfo['length_of_output'] = runinfo.apply(len_of_hdf, axis=1)
+    runinfo_update_input_file_exists(runinfo)
+    runinfo_update_output_file_exists(runinfo)
+    runinfo_update_length_of_output(runinfo)
+
     runinfo['submitted_at'] = pd.Timestamp('nat')
 
     runs_with_input = runinfo[runinfo.input_file_exists]
@@ -169,7 +233,7 @@ def main():
             datetime.utcnow()
         )
 
-    runinfo.to_hdf(join(out_dir, 'runinfo.h5'), 'all')
+    runinfo.to_hdf(runinfo_path, 'all')
 
 if __name__ == '__main__':
     main()
