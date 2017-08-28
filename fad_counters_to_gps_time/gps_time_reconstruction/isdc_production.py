@@ -51,7 +51,11 @@ def assign_paths_to_runinfo(run_info, input_dir, out_dir):
 
     for job in run_info.itertuples():
         for name, generator in path_generators.items():
-            run_info.set_value(job.Index, name, generator(job.fNight, job.fRunID))
+            run_info.set_value(
+                job.Index,
+                name,
+                generator(job.fNight, job.fRunID)
+            )
 
     return run_info
 
