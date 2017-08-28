@@ -80,7 +80,7 @@ def qsub(jobs, queue='fact_medium'):
             raise
 
 
-def start_production_at_isdc():
+def main():
     out_dir = '/gpfs0/fact/processing/gps_time'
     os.makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
