@@ -33,7 +33,14 @@ logging.basicConfig(
 )
 
 OBSERVATION_RUN_KEY = 1
-
+SQL_QUERY = '''
+SELECT
+    fNight, fRunID, fNumEvents
+FROM
+    RunInfo
+WHERE
+    fRunTypeKey={0}
+'''.format(OBSERVATION_RUN_KEY)
 
 def copy_top_level_readme_to(path):
     readme_res_path = pkg_resources.resource_filename(
@@ -149,43 +156,20 @@ def qsub(job, queue='fact_medium'):
 
 def update_runinfo(path):
     logging.info('downloading list of observation runs ... ')
-    o = pd.read_hdf(path)
-    n = pd.read_sql(
-        '''
-        SELECT
-            fNight, fRunID, fNumEvents
-        FROM
-            RunInfo
-        WHERE
-            fRunTypeKey={0}
-        '''.format(OBSERVATION_RUN_KEY),
-        create_factdb_engine()
+    runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
+    runinfo = runinfo.merge(
+        pd.read_hdf(path),
+        on=list(runinfo.columns),
+        how='outer',
     )
-
-    m = n.merge(
-            o,
-            on=list(n.columns),
-            how='outer',
-    )
-    m.has_paths.fillna(False, inplace=True)
-    m.input_file_exists.fillna(False, inplace=True)
-    m.output_file_exists.fillna(False, inplace=True)
-    return m
+    runinfo.has_paths.fillna(False, inplace=True)
+    runinfo.input_file_exists.fillna(False, inplace=True)
+    runinfo.output_file_exists.fillna(False, inplace=True)
+    return runinfo
 
 
 def initialize_runinfo(path):
-    db = create_factdb_engine()
-    runinfo = pd.read_sql(
-        '''
-        SELECT
-            fNight, fRunID, fNumEvents
-        FROM
-            RunInfo
-        WHERE
-            fRunTypeKey={0}
-        '''.format(OBSERVATION_RUN_KEY),
-        db
-    )
+    runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
     runinfo['has_paths'] = False
     runinfo['input_file_exists'] = False
     runinfo['output_file_exists'] = False
