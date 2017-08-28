@@ -131,7 +131,7 @@ def main():
     runinfo['input_file_exists'] = runinfo.input_file_path.apply(exists)
     runinfo['output_already_exists'] = runinfo.gps_time_path.apply(exists)
     runinfo['is_output_status_ok'] = runinfo.apply(status)
-    runinfo['submitted_at'] = pd.TimeStamp(float('nan'))
+    runinfo['submitted_at'] = pd.Timestamp('nat')
 
     qsub(runinfo)
 
