@@ -64,7 +64,7 @@ def assign_paths_to_runinfo(runinfo, input_dir, out_dir):
                 name,
                 generator(job.fNight, job.fRunID)
             )
-
+    runinfo['has_paths'] = True
     return runinfo
 
 
@@ -110,6 +110,8 @@ def check_length_of_output(runinfo):
                 'length_of_output',
                 float(len(pd.read_hdf(job.gps_time_path)))
             )
+        except KeyboardInterrupt:
+            raise
         except:
             logging.exception('in check_length_of_output')
 
@@ -157,7 +159,7 @@ def update_runinfo(path):
     new_runinfo = new_runinfo.merge(
         old_runinfo,
         on=['fNight', 'fRunID'])
-    new_runinfo.to_hdf(path, 'all')
+    return new_runinfo
 
 
 def initialize_runinfo(path):
@@ -170,6 +172,8 @@ def initialize_runinfo(path):
             RunInfo
         WHERE
             fRunTypeKey={0}
+        AND
+            fNight<20150000
         '''.format(OBSERVATION_RUN_KEY),
         db
     )
