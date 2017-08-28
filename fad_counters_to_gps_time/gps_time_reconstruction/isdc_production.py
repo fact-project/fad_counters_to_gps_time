@@ -116,7 +116,7 @@ def runinfo_update_output_file_exists(runinfo):
 
 def runinfo_update_length_of_output(runinfo):
     todo = runinfo[np.isnan(runinfo.length_of_output)]
-    todo = todo[todo.output_file_exists]
+    todo = todo[todo.output_file_exists > 0]
     for run in tqdm(todo.itertuples(), total=len(todo)):
         try:
             runinfo.set_value(
@@ -141,8 +141,8 @@ def update_runinfo(path):
         WHERE
             fRunTypeKey={0}
         '''.format(OBSERVATION_RUN_KEY),
+        db
     )
-    db.close()
     new_runinfo = new_runinfo.merge(
         old_runinfo,
         on=['fNight', 'fRunID'])
@@ -160,10 +160,10 @@ def initialize_runinfo(path):
         WHERE
             fRunTypeKey={0}
         '''.format(OBSERVATION_RUN_KEY),
+        db
     )
-    db.close()
     runinfo['input_file_exists'] = float('nan')
-    runinfo['output_already_exists'] = float('nan')
+    runinfo['output_file_exists'] = float('nan')
     runinfo['length_of_output'] = float('nan')
     runinfo['submitted_at'] = pd.Timestamp('nat')
     runinfo.to_hdf(path, 'all')
@@ -200,17 +200,17 @@ def main():
 
     runinfo['submitted_at'] = pd.Timestamp('nat')
 
-    runs_with_input = runinfo[runinfo.input_file_exists]
+    runs_with_input = runinfo[runinfo.input_file_exists > 0]
     logging.info(
         '{0} runs_with_input'.format(
             len(runs_with_input)))
 
-    runs_with_output = runs_with_input[runs_with_input.output_already_exists]
+    runs_with_output = runs_with_input[runs_with_input.output_file_exists > 0]
     logging.info(
         '{0} runs_with_output'.format(
             len(runs_with_output)))
 
-    runs_without_output = runs_with_input[~runs_with_input.output_already_exists]
+    runs_without_output = runs_with_input[~(runs_with_input.output_file_exists > 0)]
     logging.info(
         '{0} runs_without_output'.format(
             len(runs_without_output)))
