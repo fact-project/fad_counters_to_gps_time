@@ -106,7 +106,7 @@ def main():
     runinfo = pd.read_sql(
         '''
         SELECT
-            fNight, fRunID
+            fNight, fRunID, fNumEvents
         FROM
             RunInfo
         WHERE
