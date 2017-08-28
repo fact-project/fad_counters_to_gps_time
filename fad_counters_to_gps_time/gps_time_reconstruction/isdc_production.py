@@ -35,6 +35,7 @@ logging.basicConfig(
 
 OBSERVATION_RUN_KEY = 1
 
+
 def copy_top_level_readme_to(path):
     readme_res_path = pkg_resources.resource_filename(
         'fad_counters_to_gps_time',
@@ -43,7 +44,8 @@ def copy_top_level_readme_to(path):
     shutil.copy(readme_res_path, path)
 
 
-def assign_paths_to_runinfo(run_info, input_dir, out_dir):
+def assign_paths_to_runinfo(runinfo, input_dir, out_dir):
+
     path_generators = {
         'input_file_path': TreePath(base_dir=input_dir, suffix='_fad.h5'),
         'std_out_path': TreePath(join(out_dir, 'std'), suffix='.o'),
@@ -54,15 +56,35 @@ def assign_paths_to_runinfo(run_info, input_dir, out_dir):
             TreePath(join(out_dir, 'gps_time_models'), suffix='_models.h5'),
     }
 
-    for job in run_info.itertuples():
+    never_seen = runinfo[runinfo.never_seen]
+    for job in never_seen.itertuples():
         for name, generator in path_generators.items():
-            run_info.set_value(
+            runinfo.set_value(
                 job.Index,
                 name,
                 generator(job.fNight, job.fRunID)
             )
+        runinfo.set_value(
+            job.Index,
+            'input_file_exists',
+            exists(job.input_file_path)
+        )
+        runinfo.set_value(
+            job.Index,
+            'output_file_exists',
+            exists(job.gps_time_path)
+        )
+        try:
+            _value = len(pd.read_hdf(job.gps_time_path))
+        except:
+            _value = float('nan')
+        runinfo.set_value(
+            job.Index,
+            'length_of_output',
+            _value
+        )
 
-    return run_info
+    return runinfo
 
 
 def qsub(job, queue='fact_medium'):
@@ -86,46 +108,6 @@ def qsub(job, queue='fact_medium'):
         print('returncode', e.returncode)
         print('output', e.output)
         raise
-
-
-def runinfo_update_input_file_exists(runinfo):
-    unknown_input_files = runinfo[np.isnan(runinfo.input_file_exists)]
-    for run in unknown_input_files.itertuples():
-        try:
-            runinfo.set_value(
-                run.Index,
-                'input_file_exists',
-                float(exists(run.input_file_path))
-                )
-        except:
-            logging.exception('during runinfo_update_input_file_exists')
-
-
-def runinfo_update_output_file_exists(runinfo):
-    todo = runinfo[np.isnan(runinfo.output_file_exists)]
-    for run in todo.itertuples():
-        try:
-            runinfo.set_value(
-                run.Index,
-                'output_file_exists',
-                float(exists(run.gps_time_path))
-                )
-        except:
-            logging.exception('during runinfo_update_output_file_exists')
-
-
-def runinfo_update_length_of_output(runinfo):
-    todo = runinfo[np.isnan(runinfo.length_of_output)]
-    todo = todo[todo.output_file_exists > 0]
-    for run in tqdm(todo.itertuples(), total=len(todo)):
-        try:
-            runinfo.set_value(
-                run.Index,
-                'length_of_output',
-                float(len(pd.read_hdf(run.gps_time_path)))
-                )
-        except:
-            logging.exception('during runinfo_update_length_of_output')
 
 
 def update_runinfo(path):
@@ -162,11 +144,10 @@ def initialize_runinfo(path):
         '''.format(OBSERVATION_RUN_KEY),
         db
     )
-    runinfo['input_file_exists'] = float('nan')
-    runinfo['output_file_exists'] = float('nan')
-    runinfo['length_of_output'] = float('nan')
+    runinfo['never_seen'] = True
     runinfo['submitted_at'] = pd.Timestamp('nat')
-    runinfo.to_hdf(path, 'all')
+
+    return runinfo
 
 
 def main():
@@ -179,7 +160,9 @@ def main():
     copy_top_level_readme_to(join(out_dir, 'README.md'))
 
     if args['--init']:
-        initialize_runinfo(runinfo_path)
+        runinfo = initialize_runinfo(runinfo_path)
+        runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
+        runinfo.to_hdf(runinfo_path, 'all')
 
     if not exists(runinfo_path):
         logging.error('runinfo file does not exist. Call with --init first')
@@ -193,30 +176,24 @@ def main():
         '{0} runinfo'.format(
             len(runinfo)))
 
-    runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
-    runinfo_update_input_file_exists(runinfo)
-    runinfo_update_output_file_exists(runinfo)
-    runinfo_update_length_of_output(runinfo)
-
     runinfo['submitted_at'] = pd.Timestamp('nat')
 
-    runs_with_input = runinfo[runinfo.input_file_exists > 0]
+    runs_with_input = runinfo[runinfo.input_file_exists]
     logging.info(
         '{0} runs_with_input'.format(
             len(runs_with_input)))
 
-    runs_with_output = runs_with_input[runs_with_input.output_file_exists > 0]
+    runs_with_output = runs_with_input[runs_with_input.output_file_exists]
     logging.info(
         '{0} runs_with_output'.format(
             len(runs_with_output)))
 
-    runs_without_output = runs_with_input[~(runs_with_input.output_file_exists > 0)]
+    runs_without_output = runs_with_input[~runs_with_input.output_file_exists]
     logging.info(
         '{0} runs_without_output'.format(
             len(runs_without_output)))
 
-    runs_not_yet_submitted = runs_without_output[
-        ~(runs_without_output.submitted_at < datetime.utcnow())]
+    runs_not_yet_submitted = runs_without_output[np.isnat(runs_without_output.submitted_at)]
     logging.info(
         '{0} runs_not_yet_submitted'.format(
             len(runs_not_yet_submitted)))
