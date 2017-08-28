@@ -183,8 +183,6 @@ def initialize_runinfo(path):
             RunInfo
         WHERE
             fRunTypeKey={0}
-        AND
-            fNight<20150000
         '''.format(OBSERVATION_RUN_KEY),
         db
     )
