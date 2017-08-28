@@ -93,6 +93,14 @@ def status(job):
         return False
 
 
+def len_of_hdf(job):
+    try:
+        df = pd.read_hdf(job.gps_time_path)
+        return float(len(df))
+    except:
+        return float('nan')
+
+
 def main():
     args = docopt(__doc__)
     logging.info(str(args))
@@ -123,6 +131,7 @@ def main():
     runinfo['input_file_exists'] = runinfo.input_file_path.apply(exists)
     runinfo['output_already_exists'] = runinfo.gps_time_path.apply(exists)
     runinfo['is_output_status_ok'] = runinfo.apply(status)
+    runinfo['length_of_output'] = runinfo.apply(len_of_hdf)
     runinfo['submitted_at'] = pd.Timestamp('nat')
 
     runs_with_input = runinfo[runinfo.input_file_exists]
