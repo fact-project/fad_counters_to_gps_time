@@ -105,9 +105,9 @@ def main():
     logging.info('downloading list of observation runs ... ')
     runinfo = pd.read_sql(
         '''
-        SELECT 
+        SELECT
             fNight, fRunID
-        FROM 
+        FROM
             RunInfo
         WHERE
             fRunTypeKey={0}
