@@ -48,44 +48,70 @@ def assign_paths_to_runinfo(runinfo, input_dir, out_dir):
 
     path_generators = {
         'input_file_path': TreePath(base_dir=input_dir, suffix='_fad.h5'),
-        'std_out_path': TreePath(join(out_dir, 'std'), suffix='.o'),
-        'std_err_path': TreePath(join(out_dir, 'std'), suffix='.e'),
+        'std_out_path': TreePath(join(out_dir, 'std'), '.o'),
+        'std_err_path': TreePath(join(out_dir, 'std'), '.e'),
         'gps_time_path':
-            TreePath(join(out_dir, 'gps_time'), suffix='_gps_time.h5'),
+            TreePath(join(out_dir, 'gps_time'), '_gps_time.h5'),
         'models_path':
-            TreePath(join(out_dir, 'gps_time_models'), suffix='_models.h5'),
+            TreePath(join(out_dir, 'gps_time_models'), '_models.h5'),
     }
 
-    never_seen = runinfo[runinfo.never_seen]
-    for job in tqdm(
-            never_seen.itertuples(),
-            total=len(never_seen)
-    ):
+    have_no_paths = runinfo[~runinfo.has_paths]
+    for job in tqdm(have_no_paths, total=len(have_no_paths)):
         for name, generator in path_generators.items():
             runinfo.set_value(
                 job.Index,
                 name,
                 generator(job.fNight, job.fRunID)
             )
+
+    return runinfo
+
+
+def check_for_input_files(runinfo):
+    no_input_files = runinfo[~runinfo.input_file_exists]
+    for job in tqdm(
+            no_input_files.itertuples(),
+            total=len(no_input_files)
+    ):
         runinfo.set_value(
             job.Index,
             'input_file_exists',
             exists(job.input_file_path)
         )
+    return runinfo
+
+
+def check_for_output_files(runinfo):
+    no_input_files = runinfo[~runinfo.output_file_exists]
+    for job in tqdm(
+            no_input_files.itertuples(),
+            total=len(no_input_files)
+    ):
         runinfo.set_value(
             job.Index,
             'output_file_exists',
             exists(job.gps_time_path)
         )
+    return runinfo
+
+
+def check_length_of_output(runinfo):
+    to_be_checked = runinfo[
+        runinfo.output_file_exists & np.isnan(runinfo.length_of_output)
+    ]
+    for job in tqdm(
+            to_be_checked.itertuples(),
+            total=len(to_be_checked)
+    ):
         try:
-            _value = len(pd.read_hdf(job.gps_time_path))
+            runinfo.set_value(
+                job.Index,
+                'length_of_output',
+                float(len(pd.read_hdf(job.gps_time_path)))
+            )
         except:
-            _value = float('nan')
-        runinfo.set_value(
-            job.Index,
-            'length_of_output',
-            _value
-        )
+            logging.exception('in check_length_of_output')
 
     return runinfo
 
@@ -147,7 +173,10 @@ def initialize_runinfo(path):
         '''.format(OBSERVATION_RUN_KEY),
         db
     )
-    runinfo['never_seen'] = True
+    runinfo['has_paths'] = False
+    runinfo['input_file_exists'] = False
+    runinfo['output_file_exists'] = False
+    runinfo['length_of_output'] = np.nan
     runinfo['submitted_at'] = pd.Timestamp('nat')
 
     return runinfo
@@ -165,6 +194,9 @@ def main():
     if args['--init']:
         runinfo = initialize_runinfo(runinfo_path)
         runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
+        runinfo = check_for_input_files(runinfo)
+        runinfo = check_for_output_files(runinfo)
+        runinfo = check_length_of_output(runinfo)
         runinfo.to_hdf(runinfo_path, 'all')
 
     if not exists(runinfo_path):
@@ -178,8 +210,6 @@ def main():
     logging.info(
         '{0} runinfo'.format(
             len(runinfo)))
-
-    runinfo['submitted_at'] = pd.Timestamp('nat')
 
     runs_with_input = runinfo[runinfo.input_file_exists]
     logging.info(
