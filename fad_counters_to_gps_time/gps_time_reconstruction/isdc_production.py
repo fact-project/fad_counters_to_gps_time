@@ -57,7 +57,11 @@ def assign_paths_to_runinfo(runinfo, input_dir, out_dir):
     }
 
     have_no_paths = runinfo[~runinfo.has_paths]
-    for job in tqdm(have_no_paths.itertuples(), total=len(have_no_paths)):
+    for job in tqdm(
+            have_no_paths.itertuples(), 
+            desc='assign_paths:',
+            total=len(have_no_paths)
+        ):
         for name, generator in path_generators.items():
             runinfo.set_value(
                 job.Index,
@@ -72,6 +76,7 @@ def check_for_input_files(runinfo):
     no_input_files = runinfo[~runinfo.input_file_exists]
     for job in tqdm(
             no_input_files.itertuples(),
+            desc='check_for_input_file:',
             total=len(no_input_files)
     ):
         runinfo.set_value(
@@ -86,6 +91,7 @@ def check_for_output_files(runinfo):
     no_input_files = runinfo[~runinfo.output_file_exists]
     for job in tqdm(
             no_input_files.itertuples(),
+            desc='check_for_ouput_file:',
             total=len(no_input_files)
     ):
         runinfo.set_value(
@@ -102,6 +108,7 @@ def check_length_of_output(runinfo):
     ]
     for job in tqdm(
             to_be_checked.itertuples(),
+            desc='check_output_length:',
             total=len(to_be_checked)
     ):
         try:
@@ -143,9 +150,8 @@ def qsub(job, queue='fact_medium'):
 
 def update_runinfo(path):
     logging.info('downloading list of observation runs ... ')
-    old_runinfo = pd.read_hdf(path)
-    db = create_factdb_engine()
-    new_runinfo = pd.read_sql(
+    o = pd.read_hdf(path)
+    n = pd.read_sql(
         '''
         SELECT
             fNight, fRunID, fNumEvents
@@ -154,11 +160,17 @@ def update_runinfo(path):
         WHERE
             fRunTypeKey={0}
         '''.format(OBSERVATION_RUN_KEY),
-        db
+        create_factdb_engine()
     )
-    new_runinfo = new_runinfo.merge(
-        old_runinfo,
-        on=['fNight', 'fRunID'])
+
+    m = n.merge(
+            o,
+            on=list(n.columns),
+            how='outer',
+    )
+    m.has_paths.fillna(False, inplace=True)
+    m.input_file_exists.fillna(False, inplace=True)
+    m.output_file_exists.fillna(False, inplace=True)
     return new_runinfo
 
 
@@ -197,20 +209,22 @@ def main():
 
     if args['--init']:
         runinfo = initialize_runinfo(runinfo_path)
-        runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
-        runinfo = check_for_input_files(runinfo)
-        runinfo = check_for_output_files(runinfo)
-        runinfo = check_length_of_output(runinfo)
-        runinfo.to_hdf(runinfo_path, 'all')
-
+    
     if not exists(runinfo_path):
         logging.error('runinfo file does not exist. Call with --init first')
         sys.exit(-1)
 
     if args['--update']:
-        update_runinfo(runinfo_path)
+        runinfo = update_runinfo(runinfo_path)
+    else:
+        runinfo = pd.read_hdf(runinfo_path)
 
-    runinfo = pd.read_hdf(runinfo_path)
+    runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
+    runinfo = check_for_input_files(runinfo)
+    runinfo = check_for_output_files(runinfo)
+    runinfo = check_length_of_output(runinfo)
+
+
     logging.info(
         '{0} runinfo'.format(
             len(runinfo)))
@@ -238,6 +252,7 @@ def main():
     to_bet_submitted = runs_not_yet_submitted.sample(frac=0.1)
     for job in tqdm(
         to_bet_submitted.itertuples(),
+        desc='submitting:',
         total=len(to_bet_submitted)
     ):
         qsub(job)
