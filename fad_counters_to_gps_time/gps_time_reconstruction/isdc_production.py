@@ -6,7 +6,6 @@ Usage:
 Options:
     -o, --output DIR  output_directory [default: /gpfs0/fact/processing/gps_time]
     -i, --input DIR   input directory [default: /gpfs0/fact/processing/fad_counters/fad]
-    -f, --fraction F  fraction of possible jobs to submit [default: 1.0]
 """
 import os
 from os.path import abspath
@@ -40,35 +39,25 @@ def copy_top_level_readme_to(path):
     shutil.copy(readme_res_path, path)
 
 
-def make_job_list(
-    out_dir,
-    fad_counter_dir,
-    run_info,
-    only_a_fraction=1.0,
-    tmp_dir_base_name='gps_time_reco_',
-):
-    jobs = run_info.sample(frac=only_a_fraction).copy()
-
+def assign_paths_to_runinfo(run_info, input_dir, out_dir):
     path_generators = {
-        'input_file_path': TreePath(base_dir=fad_counter_dir, suffix='_fad.h5'),
+        'input_file_path': TreePath(base_dir=input_dir, suffix='_fad.h5'),
         'std_out_path': TreePath(join(out_dir, 'std'), suffix='.o'),
         'std_err_path': TreePath(join(out_dir, 'std'), suffix='.e'),
         'gps_time_path': TreePath(join(out_dir, 'gps_time'), suffix='_gps_time.h5'),
         'models_path': TreePath(join(out_dir, 'gps_time_models'), suffix='_models.h5'),
     }
 
-    for job in jobs.itertuples():
+    for job in run_info.itertuples():
         for name, generator in path_generators.items():
-            jobs.set_value(job.Index, name, generator(job.fNight, job.fRunID))
+            run_info.set_value(job.Index, name, generator(job.fNight, job.fRunID))
 
-    jobs['input_file_exists'] = jobs.input_file_path.apply(exists)
-
-    return jobs[jobs.input_file_exists]
+    return run_info
 
 
-def qsub(jobs, queue='fact_medium'):
+def qsub(runinfo, queue='fact_medium'):
 
-    for job in tqdm(jobs.itertuples(), total=len(jobs)):
+    for job in tqdm(runinfo.itertuples(), total=len(runinfo)):
         os.makedirs(dirname(job.std_out_path), exist_ok=True)
         os.makedirs(dirname(job.std_err_path), exist_ok=True)
 
@@ -91,13 +80,20 @@ def qsub(jobs, queue='fact_medium'):
             raise
 
 
+def status(job):
+    try:
+        df = pd.read_hdf(job.gps_time_path)
+        return len(df) == job.fNumEvents
+    except:
+        return False
+
+
 def main():
     args = docopt(__doc__)
-    args['--fraction'] = float(args['--fraction'])
     logging.info(str(args))
 
     out_dir = abspath(args['--output'])
-    fad_counter_dir = abspath(args['--input'])
+    input_dir = abspath(args['--input'])
 
     os.makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
@@ -118,18 +114,17 @@ def main():
         '{0} observation runs found in RunInfo DB'.format(
             len(runinfo)))
 
-    jobs = make_job_list(
-        out_dir,
-        fad_counter_dir,
-        runinfo
-    )
+    runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
+    runinfo['input_file_exists'] = runinfo.input_file_path.apply(exists)
+    runinfo = runinfo[runinfo.input_file_exists]
+
     logging.info(
         'for {0} of the {1} observation runs, the input file exists'.format(
             len(runinfo),
-            len(jobs)))
+            len(runinfo)))
 
-    jobs['output_already_exists'] = jobs.gps_time_path.apply(exists)
-    jobs_without_output = jobs[~job.output_already_exists]
+    runinfo['output_already_exists'] = runinfo.gps_time_path.apply(exists)
+    jobs_without_output = runinfo[~runinfo.output_already_exists]
 
     logging.info((
         'for {0} of the {1} observation runs, ' +
@@ -137,7 +132,7 @@ def main():
         'no output file exists yet.'
         ).format(
             len(jobs_without_output),
-            len(jobs)
+            len(runinfo)
             ))
 
     qsub(jobs_without_output)
