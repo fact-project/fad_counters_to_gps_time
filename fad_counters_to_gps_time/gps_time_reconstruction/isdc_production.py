@@ -125,11 +125,13 @@ def main():
     )
     logging.info(
         'for {0} of the {1} observation runs, the input file exists'.format(
+            len(jobs),
             len(runinfo),
-            len(jobs)))
+            )
+        )
 
     jobs['output_already_exists'] = jobs.gps_time_path.apply(exists)
-    jobs_without_output = jobs[~job.output_already_exists]
+    jobs_without_output = jobs[~jobs.output_already_exists]
 
     logging.info((
         'for {0} of the {1} observation runs, ' +
