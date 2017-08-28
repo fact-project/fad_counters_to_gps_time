@@ -62,41 +62,27 @@ def assign_paths_to_runinfo(run_info, input_dir, out_dir):
     return run_info
 
 
-def qsub(runinfo, queue='fact_medium'):
+def qsub(job, queue='fact_medium'):
+    os.makedirs(dirname(job.std_out_path), exist_ok=True)
+    os.makedirs(dirname(job.std_err_path), exist_ok=True)
 
-    for job in tqdm(runinfo.itertuples(), total=len(runinfo)):
-        if not job.input_file_exists:
-            continue
-        if job.output_already_exists:
-            continue
-        if job.is_output_status_ok:
-            continue
+    cmd = [
+        'qsub',
+        '-q', queue,
+        '-o', job.std_out_path,
+        '-e', job.std_err_path,
+        which('gps_time_reconstruction'),
+        job.input_file_path,
+        job.gps_time_path,
+        job.models_path,
+    ]
 
-        os.makedirs(dirname(job.std_out_path), exist_ok=True)
-        os.makedirs(dirname(job.std_err_path), exist_ok=True)
-
-        cmd = [
-            'qsub',
-            '-q', queue,
-            '-o', job.std_out_path,
-            '-e', job.std_err_path,
-            which('gps_time_reconstruction'),
-            job.input_file_path,
-            job.gps_time_path,
-            job.models_path,
-        ]
-
-        try:
-            sp.check_output(cmd, stderr=sp.STDOUT)
-            runinfo.set_value(
-                job.Index,
-                'submitted_at',
-                datetime.utcnow()
-                )
-        except sp.CalledProcessError as e:
-            print('returncode', e.returncode)
-            print('output', e.output)
-            raise
+    try:
+        sp.check_output(cmd, stderr=sp.STDOUT)
+    except sp.CalledProcessError as e:
+        print('returncode', e.returncode)
+        print('output', e.output)
+        raise
 
 
 def status(job):
@@ -139,7 +125,19 @@ def main():
     runinfo['is_output_status_ok'] = runinfo.apply(status)
     runinfo['submitted_at'] = pd.Timestamp('nat')
 
-    qsub(runinfo)
+    runs_with_input = runinfo[runinfo.input_file_exists]
+    runs_without_output = runs_with_input[~runs_with_input.is_output_status_ok]
+
+    for job in tqdm(
+        runs_without_output.itertuples(),
+        total=len(runs_without_output)
+    ):
+        qsub(job)
+        runinfo.set_value(
+            job.Index,
+            'submitted_at',
+            datetime.utcnow()
+        )
 
     runinfo.to_hdf(join(out_dir, 'runinfo.h5'), 'all')
 
