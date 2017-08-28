@@ -30,6 +30,7 @@ logging.basicConfig(
 )
 
 OBSERVATION_RUN_KEY = 1
+runinfo = None
 
 
 def copy_top_level_readme_to(path):
@@ -104,6 +105,7 @@ def len_of_hdf(job):
 def main():
     args = docopt(__doc__)
     logging.info(str(args))
+    global runinfo
 
     out_dir = abspath(args['--output'])
     input_dir = abspath(args['--input'])
@@ -130,8 +132,8 @@ def main():
     runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
     runinfo['input_file_exists'] = runinfo.input_file_path.apply(exists)
     runinfo['output_already_exists'] = runinfo.gps_time_path.apply(exists)
-    runinfo['is_output_status_ok'] = runinfo.apply(status)
-    runinfo['length_of_output'] = runinfo.apply(len_of_hdf)
+    # this takes quite long
+    #runinfo['length_of_output'] = runinfo.apply(len_of_hdf, axis=1)
     runinfo['submitted_at'] = pd.Timestamp('nat')
 
     runs_with_input = runinfo[runinfo.input_file_exists]
@@ -139,7 +141,12 @@ def main():
         '{0} runs_with_input'.format(
             len(runs_with_input)))
 
-    runs_without_output = runs_with_input[~runs_with_input.is_output_status_ok]
+    runs_with_output = runs_with_input[runs_with_input.output_already_exists]
+    logging.info(
+        '{0} runs_with_output'.format(
+            len(runs_with_output)))
+
+    runs_without_output = runs_with_input[~runs_with_input.output_already_exists]
     logging.info(
         '{0} runs_without_output'.format(
             len(runs_without_output)))
