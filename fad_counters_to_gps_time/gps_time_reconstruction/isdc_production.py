@@ -42,20 +42,6 @@ WHERE
     fRunTypeKey={0}
 '''.format(OBSERVATION_RUN_KEY)
 
-# This is in principle a constant, since the input_dir and out_dir
-# are in principle constants ... the user **could** change them, but
-# it makes no sense. So let me declare this up here, so we see
-# right away what the input an output files look like
-PATH_GENERATORS = {
-        # 'input_file_path': TreePath(base_dir=input_dir, suffix='_fad.h5'),
-        # 'std_out_path': TreePath(join(out_dir, 'std'), '.o'),
-        # 'std_err_path': TreePath(join(out_dir, 'std'), '.e'),
-        # 'gps_time_path':
-        #     TreePath(join(out_dir, 'gps_time'), '_gps_time.h5'),
-        # 'models_path':
-        #     TreePath(join(out_dir, 'gps_time_models'), '_models.h5'),
-    }
-
 
 def main():
     args = docopt(__doc__)
