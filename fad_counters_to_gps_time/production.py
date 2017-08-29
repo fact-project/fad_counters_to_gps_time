@@ -9,7 +9,6 @@ from datetime import datetime
 import shutil
 import pkg_resources
 from shutil import which
-import subprocess as sp
 import pandas as pd
 from tqdm import tqdm
 from fact.path import TreePath
