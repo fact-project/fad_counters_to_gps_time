@@ -151,6 +151,14 @@ def production_main(init_path_generators, function_to_call_with_job):
     ].copy()
 
     for job in runs_not_yet_submitted.itertuples():
+        for name, gen in path_gens:
+            runs_not_yet_submitted.set_value(
+                job.Index,
+                name,
+                gen(job)
+            )
+
+    for job in runs_not_yet_submitted.itertuples():
         runstatus.set_value(
             job.Index,
             'submitted_at',
