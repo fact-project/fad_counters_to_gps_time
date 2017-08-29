@@ -30,7 +30,7 @@ def main():
         print(e)
 
 
-def run_fad_counter_extraction(in_path, out_path, show_progress):
+def run_fad_counter_extraction(in_path, out_path, show_progress=False):
     fad_counters = read_fad_counters(
         path=in_path,
         show_progress=show_progress,
