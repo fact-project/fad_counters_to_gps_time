@@ -69,10 +69,9 @@ def main():
         sys.exit(-1)
 
     runstatus = update_runstatus(runstatus_path)
-    runstatus = assign_paths_to_runinfo(runstatus, path_generators)
-    runstatus = check_for_input_files(runstatus)
-    runstatus = check_for_output_files(runstatus)
-    runstatus = check_length_of_output(runstatus)
+    runstatus = check_for_input_files(runstatus, path_generators['input_file_path'])
+    runstatus = check_for_output_files(runstatus, path_generators['output_file_path'])
+    runstatus = check_length_of_output(runstatus, path_generators['output_file_path'])
 
     runs_not_yet_submitted = runstatus[
         runstatus.input_file_exists &
@@ -138,29 +137,7 @@ def update_runstatus(path):
     return runinfo
 
 
-def assign_paths_to_runinfo(runinfo, path_generators):
-
-    has_paths = pd.Series(True, index=runinfo.index)
-    for name in path_generators:
-        has_paths &= runinfo[name].str.len() > 0
-
-    have_no_paths = runinfo[~has_paths]
-
-    for job in tqdm(
-            have_no_paths.itertuples(),
-            desc='assign_paths:',
-            total=len(have_no_paths)
-    ):
-        for name, generator in path_generators.items():
-            runinfo.set_value(
-                job.Index,
-                name,
-                generator(job.fNight, job.fRunID)
-            )
-    return runinfo
-
-
-def check_for_input_files(runinfo):
+def check_for_input_files(runinfo, path_generator):
     no_input_files = runinfo[~runinfo.input_file_exists]
     for job in tqdm(
             no_input_files.itertuples(),
@@ -170,27 +147,27 @@ def check_for_input_files(runinfo):
         runinfo.set_value(
             job.Index,
             'input_file_exists',
-            exists(job.input_file_path)
+            exists(path_generator(job))
         )
     return runinfo
 
 
-def check_for_output_files(runinfo):
-    no_input_files = runinfo[~runinfo.output_file_exists]
+def check_for_output_files(runinfo, path_generator):
+    no_output_files = runinfo[~runinfo.output_file_exists]
     for job in tqdm(
-            no_input_files.itertuples(),
+            no_output_files.itertuples(),
             desc='check_for_ouput_file:',
-            total=len(no_input_files)
+            total=len(no_output_files)
     ):
         runinfo.set_value(
             job.Index,
             'output_file_exists',
-            exists(job.output_file_path)
+            exists(path_generator(job))
         )
     return runinfo
 
 
-def check_length_of_output(runinfo):
+def check_length_of_output(runinfo, path_generator):
     to_be_checked = runinfo[
         runinfo.output_file_exists & np.isnan(runinfo.length_of_output)
     ]
@@ -203,7 +180,7 @@ def check_length_of_output(runinfo):
             runinfo.set_value(
                 job.Index,
                 'length_of_output',
-                float(len(pd.read_hdf(job.output_file_path)))
+                float(len(pd.read_hdf(path_generator(job))))
             )
         except KeyboardInterrupt:
             raise
@@ -213,19 +190,19 @@ def check_length_of_output(runinfo):
     return runinfo
 
 
-def qsub(job, queue='fact_medium'):
-    os.makedirs(dirname(job.std_out_path), exist_ok=True)
-    os.makedirs(dirname(job.std_err_path), exist_ok=True)
+def qsub(job, path_generators, queue='fact_medium'):
+    os.makedirs(dirname(path_generators['std_out_path']), exist_ok=True)
+    os.makedirs(dirname(path_generators['std_err_path']), exist_ok=True)
 
     cmd = [
         'qsub',
         '-q', queue,
-        '-o', job.std_out_path,
-        '-e', job.std_err_path,
+        '-o', path_generators['std_out_path'](job),
+        '-e', path_generators['std_err_path'](job),
         which('gps_time_reconstruction'),
-        job.input_file_path,
-        job.output_file_path,
-        job.models_path,
+        path_generators['input_file_path'](job),
+        path_generators['output_file_path'](job),
+        path_generators['models_path'](job),
     ]
 
     try:
