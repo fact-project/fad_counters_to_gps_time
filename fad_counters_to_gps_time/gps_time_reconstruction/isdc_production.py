@@ -196,22 +196,22 @@ def main():
                 'Running with --init would overwrite that. Please remove it yourself.'
                 ).format(out_dir))
             sys.exit(-1)
-        runinfo = initialize_runstatus()
+        runstatus = initialize_runstatus()
 
     if not exists(runstatus_path):
-        logging.error('runinfo file does not exist. Call with --init first')
+        logging.error('runstatus.csv file does not exist. Call with --init first')
         sys.exit(-1)
 
-    runinfo = update_runstatus(runstatus_path)
-    runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
-    runinfo = check_for_input_files(runinfo)
-    runinfo = check_for_output_files(runinfo)
-    runinfo = check_length_of_output(runinfo)
+    runstatus = update_runstatus(runstatus_path)
+    runstatus = assign_paths_to_runinfo(runstatus, input_dir, out_dir)
+    runstatus = check_for_input_files(runstatus)
+    runstatus = check_for_output_files(runstatus)
+    runstatus = check_length_of_output(runstatus)
 
-    runs_not_yet_submitted = runinfo[
-        runinfo.input_file_exists &
-        (~runinfo.output_file_exists) &
-        np.isnat(runinfo.submitted_at)
+    runs_not_yet_submitted = runstatus[
+        runstatus.input_file_exists &
+        (~runstatus.output_file_exists) &
+        np.isnat(runstatus.submitted_at)
     ]
 
     for job in tqdm(
@@ -220,13 +220,13 @@ def main():
         total=len(runs_not_yet_submitted)
     ):
         qsub(job)
-        runinfo.set_value(
+        runstatus.set_value(
             job.Index,
             'submitted_at',
             datetime.utcnow()
         )
 
-    runinfo.to_csv(runstatus_path, 'all')
+    runstatus.to_csv(runstatus_path, 'all')
 
 if __name__ == '__main__':
     main()
