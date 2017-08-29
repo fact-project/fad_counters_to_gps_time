@@ -6,7 +6,7 @@ Options:
     --run_info_path=PATH
     --only_a_fraction=FACTOR    [default: 1.0]
     --fact_raw_dir=DIR          [default: /data/fact_data]
-    --tmp_dir_base_name=BASE    [default: fact_fad_counter_]  
+    --tmp_dir_base_name=BASE    [default: fact_fad_counter_]
 """
 import docopt
 import scoop
