@@ -15,9 +15,6 @@ import zfits
 import numpy as np
 import pandas as pd
 from tqdm import trange
-from . import isdc
-from . import ethz
-from .make_job_list import make_job_list
 
 
 def main():
@@ -79,7 +76,7 @@ def read_fad_counters(path, show_progress=False):
     df['Trigger'] = df.Trigger.astype(np.uint16)
     df['UnixTime_ns'] = df.Trigger.astype(np.uint64)
     for board_id, board_time in enumerate(board_times):
-        d[board_id] = df[board_id].astype(np.uint32)
+        df[board_id] = df[board_id].astype(np.uint32)
 
     return df
 
