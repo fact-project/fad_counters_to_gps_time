@@ -5,14 +5,12 @@ Usage:
 """
 from os.path import abspath
 from os.path import dirname
+import shutil
 import docopt
 import pandas as pd
 import numpy as np
 from scipy.stats import chi2
-import shutil
 from fact.instrument import trigger
-from . import isdc
-import os.path
 
 SQUARE_TIME_ERROR_OF_COUNTER = 1e-8/12
 MAX_RESIDUAL_MEAN = 5e-6
