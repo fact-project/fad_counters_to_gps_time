@@ -42,5 +42,8 @@ setup(
         ('produce_gps_time_at_isdc = ' +
             'fad_counters_to_gps_time.' +
             'gps_time_reconstruction.isdc_production:main'),
+        ('produce_fad_counter_at_isdc = ' +
+            'fad_counters_to_gps_time.' +
+            'fad_counter_production.isdc_production:main'),
     ]},
 )
