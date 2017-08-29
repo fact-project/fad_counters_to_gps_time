@@ -50,7 +50,7 @@ def main():
     runstatus_path = join(out_dir, 'runinfo.csv')
     os.makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
-    path_generators = init_path_generators(input_dir, out_dir)
+    path_gens = init_path_generators(input_dir, out_dir)
 
     if args['--init']:
         if exists(runstatus_path):
@@ -69,9 +69,9 @@ def main():
         sys.exit(-1)
 
     runstatus = update_runstatus(runstatus_path)
-    runstatus = check_for_input_files(runstatus, path_generators['input_file_path'])
-    runstatus = check_for_output_files(runstatus, path_generators['output_file_path'])
-    runstatus = check_length_of_output(runstatus, path_generators['output_file_path'])
+    runstatus = check_for_input_files(runstatus, path_gens['input_file_path'])
+    runstatus = check_for_output_files(runstatus, path_gens['output_file_path'])
+    runstatus = check_length_of_output(runstatus, path_gens['output_file_path'])
 
     runs_not_yet_submitted = runstatus[
         runstatus.input_file_exists &
@@ -84,7 +84,7 @@ def main():
         desc='submitting:',
         total=len(runs_not_yet_submitted)
     ):
-        qsub(job)
+        qsub(job, path_gens)
         runstatus.set_value(
             job.Index,
             'submitted_at',
@@ -190,19 +190,19 @@ def check_length_of_output(runinfo, path_generator):
     return runinfo
 
 
-def qsub(job, path_generators, queue='fact_medium'):
-    os.makedirs(dirname(path_generators['std_out_path']), exist_ok=True)
-    os.makedirs(dirname(path_generators['std_err_path']), exist_ok=True)
+def qsub(job, path_gens, queue='fact_medium'):
+    os.makedirs(dirname(path_gens['std_out_path']), exist_ok=True)
+    os.makedirs(dirname(path_gens['std_err_path']), exist_ok=True)
 
     cmd = [
         'qsub',
         '-q', queue,
-        '-o', path_generators['std_out_path'](job),
-        '-e', path_generators['std_err_path'](job),
+        '-o', path_gens['std_out_path'](job),
+        '-e', path_gens['std_err_path'](job),
         which('gps_time_reconstruction'),
-        path_generators['input_file_path'](job),
-        path_generators['output_file_path'](job),
-        path_generators['models_path'](job),
+        path_gens['input_file_path'](job),
+        path_gens['output_file_path'](job),
+        path_gens['models_path'](job),
     ]
 
     try:
