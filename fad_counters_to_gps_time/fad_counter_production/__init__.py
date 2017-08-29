@@ -10,7 +10,9 @@ into a separate output file.
 """
 import docopt
 import shutil
+from os import makedirs
 from os.path import abspath
+from os.path import dirname
 import zfits
 import numpy as np
 import pandas as pd
@@ -35,8 +37,11 @@ def run_fad_counter_extraction(in_path, out_path, show_progress=False):
         path=in_path,
         show_progress=show_progress,
     )
+
+    makedirs(dirname(out_path), exist_ok=True)
     fad_counters.to_hdf(out_path+'.part', 'all')
     shutil.move(out_path+'.part', out_path)
+    return 0  # for scoop
 
 
 def read_fad_counters(path, show_progress=False):
