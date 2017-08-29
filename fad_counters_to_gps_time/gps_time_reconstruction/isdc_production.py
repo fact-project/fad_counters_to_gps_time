@@ -151,7 +151,6 @@ def check_for_input_files(runinfo, path_generator):
             'input_file_exists',
             exists(path_generator(job))
         )
-    return runinfo
 
 
 def check_for_output_files(runinfo, path_generator):
@@ -166,12 +165,12 @@ def check_for_output_files(runinfo, path_generator):
             'output_file_exists',
             exists(path_generator(job))
         )
-    return runinfo
 
 
 def check_length_of_output(runinfo, path_generator):
     to_be_checked = runinfo[
-        runinfo.output_file_exists & np.isnan(runinfo.length_of_output)
+        np.isnan(runinfo.length_of_output) &
+        runinfo.output_file_exists
     ]
     for job in tqdm(
             to_be_checked.itertuples(),
@@ -188,8 +187,6 @@ def check_length_of_output(runinfo, path_generator):
             raise
         except:
             logging.exception('in check_length_of_output')
-
-    return runinfo
 
 
 def qsub(job, path_gens, queue='fact_medium'):
