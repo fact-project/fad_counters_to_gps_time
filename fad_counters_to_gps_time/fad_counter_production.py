@@ -15,7 +15,8 @@ from os import remove
 from os.path import exists
 from os.path import dirname
 from os.path import join
-from fact.path import TreePath
+from fact.path import tree_path
+from functools import partial
 from shutil import which
 import subprocess as sp
 from ..production import main as production_main
@@ -26,11 +27,11 @@ import scoop
 
 def init_path_generators(input_dir, out_dir):
     return {
-        'input_file_path': TreePath(base_dir=input_dir, suffix='.fits.fz'),
-        'std_out_path': TreePath(join(out_dir, 'std'), '.o'),
-        'std_err_path': TreePath(join(out_dir, 'std'), '.e'),
+        'input_file_path': partial(tree_path, base_dir=input_dir, suffix='.fits.fz'),
+        'std_out_path': partial(tree_path, join(out_dir, 'std'), '.o'),
+        'std_err_path': partial(tree_path, join(out_dir, 'std'), '.e'),
         'output_file_path':
-            TreePath(join(out_dir, 'gps_time'), '_fad.h5'),
+            partial(tree_path, join(out_dir, 'gps_time'), '_fad.h5'),
     }
 
 
