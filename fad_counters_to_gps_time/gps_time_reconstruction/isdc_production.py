@@ -169,7 +169,7 @@ def update_runstatus(path):
     return runinfo
 
 
-def initialize_runstatus(path):
+def initialize_runstatus():
     runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
     runinfo['has_paths'] = False
     runinfo['input_file_exists'] = False
@@ -196,7 +196,7 @@ def main():
                 'Running with --init would overwrite that. Please remove it yourself.'
                 ).format(out_dir))
             sys.exit(-1)
-        runinfo = initialize_runstatus(runstatus_path)
+        runinfo = initialize_runstatus()
 
     if not exists(runstatus_path):
         logging.error('runinfo file does not exist. Call with --init first')
