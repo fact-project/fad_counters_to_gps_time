@@ -150,8 +150,6 @@ def production_main(init_path_generators, function_to_call_with_job):
         np.isnat(runstatus.submitted_at)
     ].copy()
 
-    for
-
     for job in runs_not_yet_submitted.itertuples():
         runstatus.set_value(
             job.Index,
