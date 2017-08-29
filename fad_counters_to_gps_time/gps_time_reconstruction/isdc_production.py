@@ -100,7 +100,7 @@ def init_path_generators(input_dir, out_dir):
         'input_file_path': TreePath(base_dir=input_dir, suffix='_fad.h5'),
         'std_out_path': TreePath(join(out_dir, 'std'), '.o'),
         'std_err_path': TreePath(join(out_dir, 'std'), '.e'),
-        'gps_time_path':
+        'output_file_path':
             TreePath(join(out_dir, 'gps_time'), '_gps_time.h5'),
         'models_path':
             TreePath(join(out_dir, 'gps_time_models'), '_models.h5'),
@@ -185,7 +185,7 @@ def check_for_output_files(runinfo):
         runinfo.set_value(
             job.Index,
             'output_file_exists',
-            exists(job.gps_time_path)
+            exists(job.output_file_path)
         )
     return runinfo
 
@@ -203,7 +203,7 @@ def check_length_of_output(runinfo):
             runinfo.set_value(
                 job.Index,
                 'length_of_output',
-                float(len(pd.read_hdf(job.gps_time_path)))
+                float(len(pd.read_hdf(job.output_file_path)))
             )
         except KeyboardInterrupt:
             raise
@@ -224,7 +224,7 @@ def qsub(job, queue='fact_medium'):
         '-e', job.std_err_path,
         which('gps_time_reconstruction'),
         job.input_file_path,
-        job.gps_time_path,
+        job.output_file_path,
         job.models_path,
     ]
 
