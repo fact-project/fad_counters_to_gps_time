@@ -43,6 +43,57 @@ WHERE
 '''.format(OBSERVATION_RUN_KEY)
 
 
+def main():
+    args = docopt(__doc__)
+    out_dir = abspath(args['--output'])
+    input_dir = abspath(args['--input'])
+    runstatus_path = join(out_dir, 'runinfo.csv')
+    os.makedirs(out_dir, exist_ok=True)
+    copy_top_level_readme_to(join(out_dir, 'README.md'))
+
+    if args['--init']:
+        if exists(runstatus_path):
+            logging.error((
+                'runstatus.csv already exists in out_dir.\n' +
+                '%s\n' +
+                'Running with --init would overwrite that. ' +
+                'Please remove it yourself.'
+                ).format(out_dir))
+            sys.exit(-1)
+        runstatus = initialize_runstatus()
+
+    if not exists(runstatus_path):
+        logging.error(
+            'runstatus.csv file does not exist. Call with --init first')
+        sys.exit(-1)
+
+    runstatus = update_runstatus(runstatus_path)
+    runstatus = assign_paths_to_runinfo(runstatus, input_dir, out_dir)
+    runstatus = check_for_input_files(runstatus)
+    runstatus = check_for_output_files(runstatus)
+    runstatus = check_length_of_output(runstatus)
+
+    runs_not_yet_submitted = runstatus[
+        runstatus.input_file_exists &
+        (~runstatus.output_file_exists) &
+        np.isnat(runstatus.submitted_at)
+    ]
+
+    for job in tqdm(
+        runs_not_yet_submitted.itertuples(),
+        desc='submitting:',
+        total=len(runs_not_yet_submitted)
+    ):
+        qsub(job)
+        runstatus.set_value(
+            job.Index,
+            'submitted_at',
+            datetime.utcnow()
+        )
+
+    runstatus.to_csv(runstatus_path, 'all')
+
+
 def copy_top_level_readme_to(path):
     readme_res_path = pkg_resources.resource_filename(
         'fad_counters_to_gps_time',
@@ -179,54 +230,6 @@ def initialize_runstatus():
 
     return runinfo
 
-
-def main():
-    args = docopt(__doc__)
-    out_dir = abspath(args['--output'])
-    input_dir = abspath(args['--input'])
-    runstatus_path = join(out_dir, 'runinfo.csv')
-    os.makedirs(out_dir, exist_ok=True)
-    copy_top_level_readme_to(join(out_dir, 'README.md'))
-
-    if args['--init']:
-        if exists(runstatus_path):
-            logging.error((
-                'runstatus.csv already exists in out_dir.\n' +
-                '%s\n' +
-                'Running with --init would overwrite that. Please remove it yourself.'
-                ).format(out_dir))
-            sys.exit(-1)
-        runstatus = initialize_runstatus()
-
-    if not exists(runstatus_path):
-        logging.error('runstatus.csv file does not exist. Call with --init first')
-        sys.exit(-1)
-
-    runstatus = update_runstatus(runstatus_path)
-    runstatus = assign_paths_to_runinfo(runstatus, input_dir, out_dir)
-    runstatus = check_for_input_files(runstatus)
-    runstatus = check_for_output_files(runstatus)
-    runstatus = check_length_of_output(runstatus)
-
-    runs_not_yet_submitted = runstatus[
-        runstatus.input_file_exists &
-        (~runstatus.output_file_exists) &
-        np.isnat(runstatus.submitted_at)
-    ]
-
-    for job in tqdm(
-        runs_not_yet_submitted.itertuples(),
-        desc='submitting:',
-        total=len(runs_not_yet_submitted)
-    ):
-        qsub(job)
-        runstatus.set_value(
-            job.Index,
-            'submitted_at',
-            datetime.utcnow()
-        )
-
-    runstatus.to_csv(runstatus_path, 'all')
 
 if __name__ == '__main__':
     main()
