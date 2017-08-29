@@ -155,11 +155,11 @@ def qsub(job, queue='fact_medium'):
         raise
 
 
-def update_runinfo(path):
+def update_runstatus(path):
     logging.info('downloading list of observation runs ... ')
     runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
     runinfo = runinfo.merge(
-        pd.read_hdf(path),
+        pd.read_csv(path),
         on=list(runinfo.columns),
         how='outer',
     )
@@ -169,7 +169,7 @@ def update_runinfo(path):
     return runinfo
 
 
-def initialize_runinfo(path):
+def initialize_runstatus(path):
     runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
     runinfo['has_paths'] = False
     runinfo['input_file_exists'] = False
@@ -184,25 +184,25 @@ def main():
     args = docopt(__doc__)
     out_dir = abspath(args['--output'])
     input_dir = abspath(args['--input'])
-    runinfo_path = join(out_dir, 'runinfo.h5')
+    runstatus_path = join(out_dir, 'runinfo.csv')
     os.makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
 
     if args['--init']:
-        if exists(runinfo_path):
+        if exists(runstatus_path):
             logging.error((
                 'runstatus.csv already exists in out_dir.\n' +
                 '%s\n' +
                 'Running with --init would overwrite that. Please remove it yourself.'
                 ).format(out_dir))
             sys.exit(-1)
-        runinfo = initialize_runinfo(runinfo_path)
+        runinfo = initialize_runstatus(runstatus_path)
 
-    if not exists(runinfo_path):
+    if not exists(runstatus_path):
         logging.error('runinfo file does not exist. Call with --init first')
         sys.exit(-1)
 
-    runinfo = update_runinfo(runinfo_path)
+    runinfo = update_runstatus(runstatus_path)
     runinfo = assign_paths_to_runinfo(runinfo, input_dir, out_dir)
     runinfo = check_for_input_files(runinfo)
     runinfo = check_for_output_files(runinfo)
@@ -226,7 +226,7 @@ def main():
             datetime.utcnow()
         )
 
-    runinfo.to_hdf(runinfo_path, 'all')
+    runinfo.to_csv(runstatus_path, 'all')
 
 if __name__ == '__main__':
     main()
