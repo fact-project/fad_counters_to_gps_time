@@ -7,15 +7,6 @@ Options:
     -o, --output DIR  output_directory [default: /data/fact/fad_counter_new]
     -i, --input DIR   input directory [default: /fact/raw]
     --init            initialize the runinfo storage for this processing
-
-Usage: scoop_produce_phs [options]
-
-Options:
-    --out_dir=DIR
-    --run_info_path=PATH
-    --only_a_fraction=FACTOR    [default: 1.0]
-    --fact_raw_dir=DIR          [default: /data/fact_data]
-    --tmp_dir_base_name=BASE    [default: fact_fad_counter_]
 """
 import scoop
 import os
