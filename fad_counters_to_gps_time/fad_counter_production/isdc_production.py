@@ -108,9 +108,11 @@ def init_path_generators(input_dir, out_dir):
 
 
 def copy_top_level_readme_to(path):
+    this_sub_package_name = os.path.split(
+        os.path.dirname(os.path.realpath(__file__)))[-1]
     readme_res_path = pkg_resources.resource_filename(
         'fad_counters_to_gps_time',
-        'fad_counter_production/README.md'
+        this_sub_package_name+'/README.md'
     )
     shutil.copy(readme_res_path, path)
 
