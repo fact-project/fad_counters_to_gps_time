@@ -10,6 +10,7 @@ Options:
 """
 import os
 import sys
+from os import remove
 from os.path import abspath
 from os.path import join
 from os.path import exists
@@ -185,8 +186,15 @@ def check_length_of_output(runinfo, path_generator):
 
 
 def qsub(job, path_gens, queue='fact_medium'):
-    os.makedirs(dirname(path_gens['std_out_path']), exist_ok=True)
-    os.makedirs(dirname(path_gens['std_err_path']), exist_ok=True)
+
+    for p in [
+        path_gens['std_out_path'](job),
+        path_gens['std_err_path'](job)
+    ]:
+        if exists(p):
+            remove(p)
+        else:
+            os.makedirs(dirname(p), exist_ok=True)
 
     cmd = [
         'qsub',
