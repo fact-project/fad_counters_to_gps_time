@@ -12,7 +12,6 @@ import docopt
 import scoop
 import os
 import fad_counters_to_gps_time as fad2gps
-import shutil
 import pandas as pd
 
 
