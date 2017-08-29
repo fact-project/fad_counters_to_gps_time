@@ -1,5 +1,5 @@
 """
-Usage: scoop_produce_phs --out_dir=DIR --run_info_path=PATH [--fact_raw_dir=DIR] [--tmp_dir_base_name=BASE] [--only_a_fraction=FACTOR]
+Usage: scoop_produce_phs [options]
 
 Options:
     --out_dir=DIR
