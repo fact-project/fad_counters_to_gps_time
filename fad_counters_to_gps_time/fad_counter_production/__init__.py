@@ -66,7 +66,7 @@ def read_fad_counters(path, show_progress=False):
                 int(1e3) * unix_time_tuple[1])
         }
         for board_id, board_time in enumerate(board_times):
-            d[board_id] = board_time
+            d['Counter_{0:02d}'.format(board_id)] = board_time
         data.append(d)
 
     df = pd.DataFrame(data)
@@ -76,8 +76,8 @@ def read_fad_counters(path, show_progress=False):
     df['Trigger'] = df.Trigger.astype(np.uint16)
     df['UnixTime_ns'] = df.Trigger.astype(np.uint64)
     for board_id, board_time in enumerate(board_times):
-        df[board_id] = df[board_id].astype(np.uint32)
-
+        df['Counter_{0:02d}'.format(board_id)] = (
+            df[board_id].astype(np.uint32))
     return df
 
 if __name__ == '__main__':
