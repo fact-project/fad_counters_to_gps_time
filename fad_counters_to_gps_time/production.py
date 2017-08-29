@@ -1,17 +1,15 @@
 import os
 import sys
-from os import remove
 from os.path import abspath
+from os.path import realpath
 from os.path import join
 from os.path import exists
 from os.path import dirname
 from datetime import datetime
 import shutil
 import pkg_resources
-from shutil import which
 import pandas as pd
 from tqdm import tqdm
-from fact.path import TreePath
 from fact.credentials import create_factdb_engine
 from docopt import docopt
 import logging
@@ -34,8 +32,7 @@ WHERE
 
 
 def copy_top_level_readme_to(path):
-    this_sub_package_name = os.path.split(
-        os.path.dirname(os.path.realpath(__file__)))[-1]
+    this_sub_package_name = os.path.split(dirname(realpath(__file__)))[-1]
     readme_res_path = pkg_resources.resource_filename(
         'fad_counters_to_gps_time',
         this_sub_package_name+'/README.md'
