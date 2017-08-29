@@ -30,8 +30,8 @@ def read_fad_counters(path, show_progress=False):
                 np.uint64(1e9) * np.uint64(unix_time_tuple[0]) +
                 np.uint64(1e3) * np.uint64(unix_time_tuple[1]))
         }
-        for board_id in range(len(board_times)):
-            d['Counter_{0}'.format(board_id)] = np.uint32(board_times[board_id])
+        for board_id, board_time in enumerate(board_times):
+            d[board_id] = np.uint32(board_time)
         data.append(d)
 
     return pd.DataFrame(data)
