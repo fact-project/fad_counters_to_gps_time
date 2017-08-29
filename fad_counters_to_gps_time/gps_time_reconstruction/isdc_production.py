@@ -69,9 +69,11 @@ def main():
         sys.exit(-1)
 
     runstatus = update_runstatus(runstatus_path)
-    runstatus = check_for_input_files(runstatus, path_gens['input_file_path'])
-    runstatus = check_for_output_files(runstatus, path_gens['output_file_path'])
-    runstatus = check_length_of_output(runstatus, path_gens['output_file_path'])
+
+    # Note: these modify runstatus in place
+    check_for_input_files(runstatus, path_gens['input_file_path'])
+    check_for_output_files(runstatus, path_gens['output_file_path'])
+    check_length_of_output(runstatus, path_gens['output_file_path'])
 
     runs_not_yet_submitted = runstatus[
         runstatus.input_file_exists &
