@@ -25,10 +25,7 @@ from . import run_fad_counter_extraction
 
 def init_path_generators(input_dir, out_dir):
     return {
-        'input_file_path': partial(
-            tree_path,
-            base_dir=input_dir,
-            suffix='_fad.h5'),
+        'input_file_path': partial(tree_path, input_dir, '_fad.h5'),
         'std_out_path': partial(tree_path, join(out_dir, 'std'), '.o'),
         'std_err_path': partial(tree_path, join(out_dir, 'std'), '.e'),
         'output_file_path':
