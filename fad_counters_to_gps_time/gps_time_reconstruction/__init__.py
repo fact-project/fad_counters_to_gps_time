@@ -28,7 +28,7 @@ def get_gps(df):
     return df[df.Trigger.isin([trigger.EXT1, trigger.EXT2])]
 
 
-def make_counter_strictly_monotonic_increasing(counter):
+def make_counter_strictly_increasing(counter):
     counter = counter.astype(np.int64)
     w = np.where(counter.diff() < 0)[0]
     if not w:
@@ -81,7 +81,7 @@ def gps_time_reconstruction(path):
     df['time_rounded'] = df.UnixTime.round()
     df['time_diff'] = df.time_rounded - df.UnixTime
     for board_id in range(40):
-        df['Counter_{0}'.format(board_id)] = make_counter_strictly_monotonic_increasing(
+        df['Counter_{0}'.format(board_id)] = make_counter_strictly_increasing(
             df['Counter_{0}'.format(board_id)])
 
     gps_set = get_gps(df)
@@ -107,7 +107,11 @@ def gps_time_reconstruction(path):
     return out_df, models
 
 
-def write_gps_time_reconstruction(fad_counter_path, gps_time_path, models_path):
+def write_gps_time_reconstruction(
+        fad_counter_path,
+        gps_time_path,
+        models_path
+):
     gps_time, models = gps_time_reconstruction(fad_counter_path)
 
     _dir = os.path.split(os.path.abspath(gps_time_path))[0]
