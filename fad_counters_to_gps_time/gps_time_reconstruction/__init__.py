@@ -5,6 +5,7 @@ Usage:
 """
 from os.path import abspath
 from os.path import dirname
+from os import makedirs
 import shutil
 import docopt
 import pandas as pd
@@ -44,11 +45,11 @@ def write_gps_time_reconstruction(
 ):
     gps_time, models = gps_time_reconstruction(fad_counter_path)
 
-    os.makedirs(dirname(gps_time_path), exist_ok=True)
+    makedirs(dirname(gps_time_path), exist_ok=True)
     gps_time.to_hdf(gps_time_path+'.part', 'all')
     shutil.move(gps_time_path+'.part', gps_time_path)
 
-    os.makedirs(dirname(models_path), exist_ok=True)
+    makedirs(dirname(models_path), exist_ok=True)
     models.to_hdf(models_path+'.part', 'all')
     shutil.move(models_path+'.part', models_path)
 
