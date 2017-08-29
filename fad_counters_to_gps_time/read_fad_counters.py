@@ -1,4 +1,5 @@
 import zfits
+import numpy as np
 import pandas as pd
 from tqdm import trange
 
@@ -6,6 +7,10 @@ from tqdm import trange
 def read_fad_counters(path, show_progress=False):
     zfits_file = zfits.ZFits(path)
     data = []
+
+    fNight = np.uint32(zfits_file['Events'].read_header()['NIGHT'])
+    fRunID = np.uint32(zfits_file['Events'].read_header()['RUNID'])
+
     for event_id in trange(
             zfits_file['Events'].get_nrows(),
             disable=not show_progress
@@ -17,24 +22,16 @@ def read_fad_counters(path, show_progress=False):
         board_times = zfits_file.get('Events', 'BoardTime', event_id)
 
         d = {
-            'Event': Event,
-            'Trigger': Trigger,
-            'UnixTime': unix_time_tuple[0] + unix_time_tuple[1] / 1e6,
+            'fNight': fNight,
+            'fRunID': fRunID,
+            'Event': np.uint32(Event),
+            'Trigger': np.uint16(Trigger),
+            'UnixTime_ns': (
+                np.uint64(1e9) * np.uint64(unix_time_tuple[0]) +
+                np.uint64(1e3) * np.uint64(unix_time_tuple[1]))
         }
         for board_id in range(len(board_times)):
-            d['Counter_{0}'.format(board_id)] = board_times[board_id]
+            d['Counter_{0}'.format(board_id)] = np.uint32(board_times[board_id])
         data.append(d)
 
-    df = pd.DataFrame(data)
-    df['Night'] = zfits_file['Events'].read_header()['NIGHT']
-    df['Run'] = zfits_file['Events'].read_header()['RUNID']
-
-    df['Event'] = df.Event.astype('u4')
-    df['Trigger'] = df.Trigger.astype('u2')
-    df['UnixTime'] = df.UnixTime.astype('f8')
-    df['Night'] = df.Night.astype('u4')
-    df['Run'] = df.Run.astype('u4')
-    for board_id in range(40):
-        df['Counter_{0}'.format(board_id)] = df['Counter_{0}'.format(board_id)].astype('u4')
-
-    return df
+    return pd.DataFrame(data)
