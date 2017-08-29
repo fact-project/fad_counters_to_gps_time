@@ -28,6 +28,10 @@ class TooFewGpsEvents(Exception):
 
 def main():
     args = docopt.docopt(__doc__)
+    args['<fad_counter_path>'] = abspath(args['<fad_counter_path>'])
+    args['<gps_time_path>'] = abspath(args['<gps_time_path>'])
+    args['<models_path>'] = abspath(args['<models_path>'])
+
     write_gps_time_reconstruction(
         fad_counter_path=args['<fad_counter_path>'],
         gps_time_path=args['<gps_time_path>'],
@@ -42,13 +46,11 @@ def write_gps_time_reconstruction(
 ):
     gps_time, models = gps_time_reconstruction(fad_counter_path)
 
-    _dir = os.path.split(os.path.abspath(gps_time_path))[0]
-    os.makedirs(_dir, exist_ok=True)
+    os.makedirs(dirname(gps_time_path), exist_ok=True)
     gps_time.to_hdf(gps_time_path+'.part', 'all')
     shutil.move(gps_time_path+'.part', gps_time_path)
 
-    _dir = os.path.split(os.path.abspath(models_path))[0]
-    os.makedirs(_dir, exist_ok=True)
+    os.makedirs(dirname(models_path), exist_ok=True)
     models.to_hdf(models_path+'.part', 'all')
     shutil.move(models_path+'.part', models_path)
 
