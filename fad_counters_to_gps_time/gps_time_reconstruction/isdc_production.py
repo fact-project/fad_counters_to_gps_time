@@ -131,7 +131,6 @@ def copy_top_level_readme_to(path):
 
 def initialize_runstatus():
     runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
-    runinfo['has_paths'] = False
     runinfo['input_file_exists'] = False
     runinfo['output_file_exists'] = False
     runinfo['length_of_output'] = np.nan
@@ -148,14 +147,19 @@ def update_runstatus(path):
         on=list(runinfo.columns),
         how='outer',
     )
-    runinfo.has_paths.fillna(False, inplace=True)
     runinfo.input_file_exists.fillna(False, inplace=True)
     runinfo.output_file_exists.fillna(False, inplace=True)
     return runinfo
 
 
 def assign_paths_to_runinfo(runinfo, path_generators):
-    have_no_paths = runinfo[~runinfo.has_paths]
+
+    has_paths = pd.Series(True, index=runinfo.index)
+    for name in path_generators:
+        has_paths &= runinfo[name].str.len() > 0
+
+    have_no_paths = runinfo[~has_paths]
+
     for job in tqdm(
             have_no_paths.itertuples(),
             desc='assign_paths:',
@@ -167,7 +171,6 @@ def assign_paths_to_runinfo(runinfo, path_generators):
                 name,
                 generator(job.fNight, job.fRunID)
             )
-    runinfo['has_paths'] = True
     return runinfo
 
 
