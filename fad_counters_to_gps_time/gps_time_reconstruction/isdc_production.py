@@ -102,6 +102,31 @@ def copy_top_level_readme_to(path):
     shutil.copy(readme_res_path, path)
 
 
+def initialize_runstatus():
+    runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
+    runinfo['has_paths'] = False
+    runinfo['input_file_exists'] = False
+    runinfo['output_file_exists'] = False
+    runinfo['length_of_output'] = np.nan
+    runinfo['submitted_at'] = pd.Timestamp('nat')
+
+    return runinfo
+
+
+def update_runstatus(path):
+    logging.info('downloading list of observation runs ... ')
+    runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
+    runinfo = runinfo.merge(
+        pd.read_csv(path),
+        on=list(runinfo.columns),
+        how='outer',
+    )
+    runinfo.has_paths.fillna(False, inplace=True)
+    runinfo.input_file_exists.fillna(False, inplace=True)
+    runinfo.output_file_exists.fillna(False, inplace=True)
+    return runinfo
+
+
 def assign_paths_to_runinfo(runinfo, input_dir, out_dir):
 
     path_generators = {
@@ -204,31 +229,6 @@ def qsub(job, queue='fact_medium'):
         print('returncode', e.returncode)
         print('output', e.output)
         raise
-
-
-def update_runstatus(path):
-    logging.info('downloading list of observation runs ... ')
-    runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
-    runinfo = runinfo.merge(
-        pd.read_csv(path),
-        on=list(runinfo.columns),
-        how='outer',
-    )
-    runinfo.has_paths.fillna(False, inplace=True)
-    runinfo.input_file_exists.fillna(False, inplace=True)
-    runinfo.output_file_exists.fillna(False, inplace=True)
-    return runinfo
-
-
-def initialize_runstatus():
-    runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
-    runinfo['has_paths'] = False
-    runinfo['input_file_exists'] = False
-    runinfo['output_file_exists'] = False
-    runinfo['length_of_output'] = np.nan
-    runinfo['submitted_at'] = pd.Timestamp('nat')
-
-    return runinfo
 
 
 if __name__ == '__main__':
