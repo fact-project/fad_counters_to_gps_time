@@ -82,7 +82,8 @@ def read_fad_counters(path, show_progress=False):
     df['UnixTime_ns'] = df.Trigger.astype(np.uint64)
     for board_id, board_time in enumerate(board_times):
         df['Counter_{0:02d}'.format(board_id)] = (
-            df[board_id].astype(np.uint32))
+            df['Counter_{0:02d}'.format(board_id)].astype(np.uint32)
+        )
     return df
 
 if __name__ == '__main__':
