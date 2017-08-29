@@ -177,16 +177,11 @@ def check_length_of_output(runinfo, path_generator):
             desc='check_output_length:',
             total=len(to_be_checked)
     ):
-        try:
-            runinfo.set_value(
-                job.Index,
-                'length_of_output',
-                float(len(pd.read_hdf(path_generator(job))))
-            )
-        except KeyboardInterrupt:
-            raise
-        except:
-            logging.exception('in check_length_of_output')
+        runinfo.set_value(
+            job.Index,
+            'length_of_output',
+            float(len(pd.read_hdf(path_generator(job))))
+        )
 
 
 def qsub(job, path_gens, queue='fact_medium'):
