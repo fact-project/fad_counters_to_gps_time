@@ -189,6 +189,13 @@ def main():
     copy_top_level_readme_to(join(out_dir, 'README.md'))
 
     if args['--init']:
+        if exists(runinfo_path):
+            logging.error((
+                'runstatus.csv already exists in out_dir.\n' +
+                '%s\n' +
+                'Running with --init would overwrite that. Please remove it yourself.'
+                ).format(out_dir))
+            sys.exit(-1)
         runinfo = initialize_runinfo(runinfo_path)
 
     if not exists(runinfo_path):
