@@ -42,6 +42,20 @@ WHERE
     fRunTypeKey={0}
 '''.format(OBSERVATION_RUN_KEY)
 
+# This is in principle a constant, since the input_dir and out_dir
+# are in principle constants ... the user **could** change them, but
+# it makes no sense. So let me declare this up here, so we see
+# right away what the input an output files look like
+PATH_GENERATORS = {
+        # 'input_file_path': TreePath(base_dir=input_dir, suffix='_fad.h5'),
+        # 'std_out_path': TreePath(join(out_dir, 'std'), '.o'),
+        # 'std_err_path': TreePath(join(out_dir, 'std'), '.e'),
+        # 'gps_time_path':
+        #     TreePath(join(out_dir, 'gps_time'), '_gps_time.h5'),
+        # 'models_path':
+        #     TreePath(join(out_dir, 'gps_time_models'), '_models.h5'),
+    }
+
 
 def main():
     args = docopt(__doc__)
@@ -50,6 +64,7 @@ def main():
     runstatus_path = join(out_dir, 'runinfo.csv')
     os.makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
+    path_generators = init_path_generators(input_dir, out_dir)
 
     if args['--init']:
         if exists(runstatus_path):
@@ -68,7 +83,7 @@ def main():
         sys.exit(-1)
 
     runstatus = update_runstatus(runstatus_path)
-    runstatus = assign_paths_to_runinfo(runstatus, input_dir, out_dir)
+    runstatus = assign_paths_to_runinfo(runstatus, path_generators)
     runstatus = check_for_input_files(runstatus)
     runstatus = check_for_output_files(runstatus)
     runstatus = check_length_of_output(runstatus)
@@ -92,6 +107,18 @@ def main():
         )
 
     runstatus.to_csv(runstatus_path, 'all')
+
+
+def init_path_generators(input_dir, out_dir):
+    return {
+        'input_file_path': TreePath(base_dir=input_dir, suffix='_fad.h5'),
+        'std_out_path': TreePath(join(out_dir, 'std'), '.o'),
+        'std_err_path': TreePath(join(out_dir, 'std'), '.e'),
+        'gps_time_path':
+            TreePath(join(out_dir, 'gps_time'), '_gps_time.h5'),
+        'models_path':
+            TreePath(join(out_dir, 'gps_time_models'), '_models.h5'),
+    }
 
 
 def copy_top_level_readme_to(path):
@@ -127,18 +154,7 @@ def update_runstatus(path):
     return runinfo
 
 
-def assign_paths_to_runinfo(runinfo, input_dir, out_dir):
-
-    path_generators = {
-        'input_file_path': TreePath(base_dir=input_dir, suffix='_fad.h5'),
-        'std_out_path': TreePath(join(out_dir, 'std'), '.o'),
-        'std_err_path': TreePath(join(out_dir, 'std'), '.e'),
-        'gps_time_path':
-            TreePath(join(out_dir, 'gps_time'), '_gps_time.h5'),
-        'models_path':
-            TreePath(join(out_dir, 'gps_time_models'), '_models.h5'),
-    }
-
+def assign_paths_to_runinfo(runinfo, path_generators):
     have_no_paths = runinfo[~runinfo.has_paths]
     for job in tqdm(
             have_no_paths.itertuples(),
