@@ -78,8 +78,9 @@ class RunStatus:
 
     def _remove_paths(self):
         self.runstatus.drop(
-            columns=self.path_gens.keys(),
-            inplace=True
+            labels=self.path_gens.keys(),
+            axis=1,
+            inplace=True,
         )
 
 
