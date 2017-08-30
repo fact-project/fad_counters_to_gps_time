@@ -1,5 +1,4 @@
 import os
-import sys
 from os.path import abspath
 from os.path import realpath
 from os.path import join
@@ -117,23 +116,10 @@ def production_main(init_path_generators, function_to_call_with_job):
     copy_top_level_readme_to(join(out_dir, 'README.md'))
     path_gens = init_path_generators(input_dir, out_dir)
 
-    if args['--init']:
-        if exists(runstatus_path):
-            logging.error((
-                'runstatus.csv already exists in out_dir.\n' +
-                '%s\n' +
-                'Running with --init would overwrite that. ' +
-                'Please remove it yourself.'
-                ).format(out_dir))
-            sys.exit(-1)
+    if exists(runstatus_path):
+        runstatus = update_runstatus(runstatus_path)
+    else:
         runstatus = initialize_runstatus()
-
-    if not exists(runstatus_path):
-        logging.error(
-            'runstatus.csv file does not exist. Call with --init first')
-        sys.exit(-1)
-
-    runstatus = update_runstatus(runstatus_path)
 
     # Note: these modify runstatus in place
     check_for_input_files(runstatus, path_gens['input_file_path'])
