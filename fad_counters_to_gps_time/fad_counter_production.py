@@ -95,7 +95,7 @@ def main():
 
     if args['--qsub']:
         production_main(
-            init_path_generators,
+            path_generators,
             qsub,
             out_dir
         )
