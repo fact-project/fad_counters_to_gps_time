@@ -107,14 +107,14 @@ def check_length_of_output(runinfo, path_generator):
         )
 
 
-def production_main(init_path_generators, function_to_call_with_job):
-    args = docopt(__doc__)
-    out_dir = abspath(args['--output'])
-    input_dir = abspath(args['--input'])
+def production_main(
+        path_gens,
+        function_to_call_with_job,
+        out_dir
+):
     runstatus_path = join(out_dir, 'runinfo.csv')
     os.makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
-    path_gens = init_path_generators(input_dir, out_dir)
 
     if exists(runstatus_path):
         runstatus = update_runstatus(runstatus_path)

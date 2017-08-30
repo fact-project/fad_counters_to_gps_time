@@ -13,6 +13,7 @@ from os import remove
 from os.path import exists
 from os.path import dirname
 from os.path import join
+from os.path import abspath
 from fact.path import tree_path
 from functools import partial
 from shutil import which
@@ -65,7 +66,12 @@ def qsub(job, queue='fact_medium'):
 
 
 def main():
-    production_main(init_path_generators, qsub)
+    args = docopt(__doc__)
+    out_dir = abspath(args['--output'])
+    input_dir = abspath(args['--input'])
+    path_generators = init_path_generators(input_dir, out_dir)
+
+    production_main(path_generators, qsub, out_dir)
 
 
 if __name__ == '__main__':
