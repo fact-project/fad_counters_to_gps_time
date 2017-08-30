@@ -21,7 +21,7 @@ from shutil import which
 import subprocess as sp
 from .production import production_main
 
-from . import run_fad_counter_extraction
+from .fad_counter_readout import run_fad_counter_extraction
 import scoop
 
 

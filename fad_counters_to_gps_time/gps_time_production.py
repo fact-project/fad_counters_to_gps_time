@@ -20,8 +20,6 @@ from shutil import which
 import subprocess as sp
 from .production import production_main
 
-from . import run_fad_counter_extraction
-
 
 def init_path_generators(input_dir, out_dir):
     return {
