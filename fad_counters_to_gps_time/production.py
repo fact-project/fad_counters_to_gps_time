@@ -32,22 +32,18 @@ def copy_top_level_readme_to(path):
     shutil.copy(readme_res_path, path)
 
 
-def initialize_runstatus():
+def get_current_runstatus(runstatus_path):
     runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
-    runinfo['input_file_exists'] = False
-    runinfo['submitted_at'] = pd.Timestamp('nat')
-
-    return runinfo
-
-
-def update_runstatus(path):
-    runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
-    runinfo = runinfo.merge(
-        pd.read_csv(path),
-        on=list(runinfo.columns),
-        how='outer',
-    )
-    runinfo.input_file_exists.fillna(False, inplace=True)
+    if exists(runstatus_path):
+        runinfo = runinfo.merge(
+            pd.read_csv(path),
+            on=list(runinfo.columns),
+            how='outer',
+        )
+        runinfo.input_file_exists.fillna(False, inplace=True)
+    else:
+        runinfo['input_file_exists'] = False
+        runinfo['submitted_at'] = pd.Timestamp('nat')
     return runinfo
 
 
@@ -70,14 +66,11 @@ def production_main(
         function_to_call_with_job,
         out_dir
 ):
-    runstatus_path = join(out_dir, 'runinfo.csv')
     makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
 
-    if exists(runstatus_path):
-        runstatus = update_runstatus(runstatus_path)
-    else:
-        runstatus = initialize_runstatus()
+    runstatus_path = join(out_dir, 'runinfo.csv')
+    runstatus = get_current_runstatus(runstatus_path)
 
     # Note: these modify runstatus in place
     check_for_input_files(runstatus, path_gens['input_file_path'])
