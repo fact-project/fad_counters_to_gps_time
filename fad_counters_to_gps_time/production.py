@@ -34,11 +34,7 @@ def copy_top_level_readme_to(path):
 
 def check_for_input_files(runinfo):
     no_input_files = runinfo[~runinfo.input_file_exists]
-    for job in tqdm(
-            no_input_files.itertuples(),
-            desc='check_for_input_file:',
-            total=len(no_input_files)
-    ):
+    for job in no_input_files.itertuples():
         runinfo.set_value(
             job.Index,
             'input_file_exists',
