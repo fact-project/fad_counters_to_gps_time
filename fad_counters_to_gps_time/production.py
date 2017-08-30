@@ -63,7 +63,11 @@ class RunStatus:
         self.runstatus.to_csv(self.path, 'all')
 
     def _add_paths(self):
-        for row in self.runstatus.itertuples():
+        for row in tqdm(
+            self.runstatus.itertuples(),
+            desc='makings paths',
+            total=len(self.runstatus)
+        ):
             for name, path_gen in self.path_gens.items():
                 self.runstatus.set_value(
                     row.Index,
