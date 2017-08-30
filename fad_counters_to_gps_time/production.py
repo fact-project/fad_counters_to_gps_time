@@ -41,8 +41,6 @@ def copy_top_level_readme_to(path):
 def initialize_runstatus():
     runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
     runinfo['input_file_exists'] = False
-    runinfo['output_file_exists'] = False
-    runinfo['length_of_output'] = np.nan
     runinfo['submitted_at'] = pd.Timestamp('nat')
 
     return runinfo
@@ -57,7 +55,6 @@ def update_runstatus(path):
         how='outer',
     )
     runinfo.input_file_exists.fillna(False, inplace=True)
-    runinfo.output_file_exists.fillna(False, inplace=True)
     return runinfo
 
 
@@ -72,37 +69,6 @@ def check_for_input_files(runinfo, path_generator):
             job.Index,
             'input_file_exists',
             exists(path_generator(job))
-        )
-
-
-def check_for_output_files(runinfo, path_generator):
-    no_output_files = runinfo[~runinfo.output_file_exists]
-    for job in tqdm(
-            no_output_files.itertuples(),
-            desc='check_for_ouput_file:',
-            total=len(no_output_files)
-    ):
-        runinfo.set_value(
-            job.Index,
-            'output_file_exists',
-            exists(path_generator(job))
-        )
-
-
-def check_length_of_output(runinfo, path_generator):
-    to_be_checked = runinfo[
-        np.isnan(runinfo.length_of_output) &
-        runinfo.output_file_exists
-    ]
-    for job in tqdm(
-            to_be_checked.itertuples(),
-            desc='check_output_length:',
-            total=len(to_be_checked)
-    ):
-        runinfo.set_value(
-            job.Index,
-            'length_of_output',
-            float(len(pd.read_hdf(path_generator(job))))
         )
 
 
@@ -122,8 +88,6 @@ def production_main(
 
     # Note: these modify runstatus in place
     check_for_input_files(runstatus, path_gens['input_file_path'])
-    check_for_output_files(runstatus, path_gens['output_file_path'])
-    check_length_of_output(runstatus, path_gens['output_file_path'])
 
     runs_not_yet_submitted = runstatus[
         runstatus.input_file_exists &
