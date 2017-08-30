@@ -29,7 +29,12 @@ def copy_top_level_readme_to(path):
 
 def check_for_input_files(runstatus):
     input_file_exists = runstatus.input_file_exists.values.copy()
-    for run in runstatus[~runstatus.input_file_exists].itertuples():
+    to_check = runstatus[~runstatus.input_file_exists]
+    for run in tqdm(
+        to_check.itertuples(),
+        desc='searching for input files',
+        total=len(to_check)
+    ):
         input_file_exists[run.Index] = exists(run.input_file_path)
     return input_file_exists
 
