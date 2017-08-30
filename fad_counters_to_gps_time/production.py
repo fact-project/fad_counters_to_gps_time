@@ -106,7 +106,11 @@ def production_main(
         ]
 
         submitted_at = runstatus.submitted_at.values.copy()
-        for job in runs_not_yet_submitted.itertuples():
+        for job in tqdm(
+            runs_not_yet_submitted.itertuples(),
+            desc='submitting',
+            total=len(runs_not_yet_submitted)
+        ):
             function_to_call_with_job(job)
             submitted_at[job.Index] = datetime.utcnow()
         runstatus['submitted_at'] = submitted_at
