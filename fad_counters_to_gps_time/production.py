@@ -32,21 +32,6 @@ def copy_top_level_readme_to(path):
     shutil.copy(readme_res_path, path)
 
 
-def get_current_runstatus(runstatus_path):
-    runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
-    if exists(runstatus_path):
-        runinfo = runinfo.merge(
-            pd.read_csv(path),
-            on=list(runinfo.columns),
-            how='outer',
-        )
-        runinfo.input_file_exists.fillna(False, inplace=True)
-    else:
-        runinfo['input_file_exists'] = False
-        runinfo['submitted_at'] = pd.Timestamp('nat')
-    return runinfo
-
-
 def check_for_input_files(runinfo, path_generator):
     no_input_files = runinfo[~runinfo.input_file_exists]
     for job in tqdm(
@@ -65,9 +50,22 @@ class RunStatus:
 
     def __init__(self, path):
         self.path = path
+        self.runstatus = None
 
     def __enter__(self):
-        self.runstatus = get_current_runstatus(self.path)
+        runstatus = pd.read_sql(SQL_QUERY, create_factdb_engine())
+        if exists(self.path):
+            runstatus = runstatus.merge(
+                pd.read_csv(self.path),
+                on=list(runstatus.columns),
+                how='outer',
+            )
+            runstatus.input_file_exists.fillna(False, inplace=True)
+        else:
+            runstatus['input_file_exists'] = False
+            runstatus['submitted_at'] = pd.Timestamp('nat')
+
+        self.runstatus = runstatus
         return self.runstatus
 
     def __exit__(self):
