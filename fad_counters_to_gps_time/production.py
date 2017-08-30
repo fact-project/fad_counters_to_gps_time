@@ -1,16 +1,15 @@
-import os
-from os.path import abspath
+from os import makedirs
 from os.path import realpath
 from os.path import join
 from os.path import exists
 from os.path import dirname
+from os.path import split
 from datetime import datetime
 import shutil
 import pkg_resources
 import pandas as pd
 from tqdm import tqdm
 from fact.credentials import create_factdb_engine
-from docopt import docopt
 import logging
 import numpy as np
 
@@ -31,7 +30,7 @@ WHERE
 
 
 def copy_top_level_readme_to(path):
-    this_sub_package_name = os.path.split(dirname(realpath(__file__)))[-1]
+    this_sub_package_name = split(dirname(realpath(__file__)))[-1]
     readme_res_path = pkg_resources.resource_filename(
         'fad_counters_to_gps_time',
         this_sub_package_name+'/README.md'
@@ -113,7 +112,7 @@ def production_main(
         out_dir
 ):
     runstatus_path = join(out_dir, 'runinfo.csv')
-    os.makedirs(out_dir, exist_ok=True)
+    makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
 
     if exists(runstatus_path):
