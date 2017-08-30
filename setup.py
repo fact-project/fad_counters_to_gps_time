@@ -21,7 +21,7 @@ setup(
         'sklearn',
         'scikit-image',
         'matplotlib',
-        'pyfact',
+        'pyfact>=0.12.1',
         'pandas',
         'tqdm',
         'photon_stream',
