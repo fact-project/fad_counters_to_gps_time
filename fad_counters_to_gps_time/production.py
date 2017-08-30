@@ -61,6 +61,19 @@ def check_for_input_files(runinfo, path_generator):
         )
 
 
+class RunStatus:
+
+    def __init__(self, path):
+        self.path = path
+
+    def __enter__(self):
+        self.runstatus = get_current_runstatus(self.path)
+        return self.runstatus
+
+    def __exit__(self):
+        self.runstatus.to_csv(self.path, 'all')
+
+
 def production_main(
         path_gens,
         function_to_call_with_job,
@@ -69,31 +82,28 @@ def production_main(
     makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
 
-    runstatus_path = join(out_dir, 'runinfo.csv')
-    runstatus = get_current_runstatus(runstatus_path)
+    with RunStatus(join(out_dir, 'runinfo.csv')) as runstatus:
 
-    # Note: these modify runstatus in place
-    check_for_input_files(runstatus, path_gens['input_file_path'])
+        # Note: these modify runstatus in place
+        check_for_input_files(runstatus, path_gens['input_file_path'])
 
-    runs_not_yet_submitted = runstatus[
-        runstatus.input_file_exists &
-        np.isnat(runstatus.submitted_at)
-    ].copy()
+        runs_not_yet_submitted = runstatus[
+            runstatus.input_file_exists &
+            np.isnat(runstatus.submitted_at)
+        ].copy()
 
-    for job in runs_not_yet_submitted.itertuples():
-        for name, gen in path_gens:
-            runs_not_yet_submitted.set_value(
+        for job in runs_not_yet_submitted.itertuples():
+            for name, gen in path_gens:
+                runs_not_yet_submitted.set_value(
+                    job.Index,
+                    name,
+                    gen(job)
+                )
+
+        for job in runs_not_yet_submitted.itertuples():
+            runstatus.set_value(
                 job.Index,
-                name,
-                gen(job)
+                'submitted_at',
+                datetime.utcnow()
             )
-
-    for job in runs_not_yet_submitted.itertuples():
-        runstatus.set_value(
-            job.Index,
-            'submitted_at',
-            datetime.utcnow()
-        )
-        function_to_call_with_job(job)
-
-    runstatus.to_csv(runstatus_path, 'all')
+            function_to_call_with_job(job)
