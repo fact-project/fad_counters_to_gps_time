@@ -127,7 +127,6 @@ def production_main(
 
     runs_not_yet_submitted = runstatus[
         runstatus.input_file_exists &
-        (~runstatus.output_file_exists) &
         np.isnat(runstatus.submitted_at)
     ].copy()
 
