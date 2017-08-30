@@ -52,8 +52,8 @@ class RunStatus:
             runstatus['input_file_exists'] = False
             runstatus['submitted_at'] = pd.Timestamp('nat')
 
-        self._add_paths()
         self.runstatus = runstatus
+        self._add_paths()
 
     def __enter__(self):
         return self.runstatus
