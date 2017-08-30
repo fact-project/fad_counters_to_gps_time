@@ -6,7 +6,6 @@ Usage:
 Options:
     -o, --output DIR  output_directory [default: /gpfs0/fact/processing/gps_time]
     -i, --input DIR   input directory [default: /gpfs0/fact/processing/fad_counters/fad]
-    --init            initialize the runinfo storage for this processing
 """
 import os
 from docopt import docopt

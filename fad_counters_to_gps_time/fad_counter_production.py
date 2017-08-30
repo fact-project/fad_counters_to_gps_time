@@ -6,7 +6,6 @@ Usage:
 Options:
     -o, --output DIR  output_directory [default: /gpfs0/fact/processing/fad_counter_new]
     -i, --input DIR   input directory [default: /fact/raw]
-    --init            initialize the runinfo storage for this processing
     --qsub            use qsub for submission
 """
 import os
