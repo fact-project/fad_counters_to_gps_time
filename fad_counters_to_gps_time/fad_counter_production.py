@@ -41,7 +41,7 @@ def init_path_generators(input_dir, out_dir):
             suffix='.e'),
         'output_file_path': partial(
                 tree_path,
-                prefix=join(out_dir, 'gps_time'),
+                prefix=join(out_dir, 'fad_counters'),
                 suffix='_fad.h5'),
     }
 
