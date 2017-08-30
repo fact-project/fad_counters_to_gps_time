@@ -63,7 +63,7 @@ class RunStatus:
     def __enter__(self):
         return self.runstatus
 
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self._remove_paths()
         self.runstatus.to_csv(self.path, 'all')
 
