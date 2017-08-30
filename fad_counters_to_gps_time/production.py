@@ -87,7 +87,7 @@ def production_main(
     makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
 
-    with RunStatus(join(out_dir, 'runstatus.csv')) as runstatus:
+    with RunStatus(join(out_dir, 'runstatus.csv'), path_gens) as runstatus:
 
         runstatus['input_file_exists'] = check_for_input_files(runstatus)
 
