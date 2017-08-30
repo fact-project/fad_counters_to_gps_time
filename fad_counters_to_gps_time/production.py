@@ -33,7 +33,7 @@ def copy_top_level_readme_to(path):
 
 
 def check_for_input_files(runstatus):
-    bools = runstatus.input_file_exists.values
+    bools = runstatus.input_file_exists.values.copy()
     for run in runstatus[~runstatus.input_file_exists].itertuples():
         bools[run.Index] = exists(run.input_file_path)
     return bools
