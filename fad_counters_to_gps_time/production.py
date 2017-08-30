@@ -10,13 +10,7 @@ import pkg_resources
 import pandas as pd
 from tqdm import tqdm
 from fact.credentials import create_factdb_engine
-import logging
 import numpy as np
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s %(message)s'
-)
 
 OBSERVATION_RUN_KEY = 1
 SQL_QUERY = '''
@@ -47,7 +41,6 @@ def initialize_runstatus():
 
 
 def update_runstatus(path):
-    logging.info('downloading list of observation runs ... ')
     runinfo = pd.read_sql(SQL_QUERY, create_factdb_engine())
     runinfo = runinfo.merge(
         pd.read_csv(path),
