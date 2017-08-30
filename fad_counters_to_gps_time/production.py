@@ -1,9 +1,6 @@
 from os import makedirs
-from os.path import realpath
 from os.path import join
 from os.path import exists
-from os.path import dirname
-from os.path import split
 from datetime import datetime
 import shutil
 import pkg_resources
@@ -24,10 +21,8 @@ WHERE
 
 
 def copy_top_level_readme_to(path):
-    this_sub_package_name = split(dirname(realpath(__file__)))[-1]
     readme_res_path = pkg_resources.resource_filename(
-        'fad_counters_to_gps_time',
-        this_sub_package_name+'/README.md'
+        'fad_counters_to_gps_time', 'README.md'
     )
     shutil.copy(readme_res_path, path)
 
