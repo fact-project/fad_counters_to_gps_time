@@ -27,11 +27,22 @@ import scoop
 
 def init_path_generators(input_dir, out_dir):
     return {
-        'input_file_path': partial(tree_path, base_dir=input_dir, suffix='.fits.fz'),
-        'std_out_path': partial(tree_path, join(out_dir, 'std'), '.o'),
-        'std_err_path': partial(tree_path, join(out_dir, 'std'), '.e'),
-        'output_file_path':
-            partial(tree_path, join(out_dir, 'gps_time'), '_fad.h5'),
+        'input_file_path': partial(
+            tree_path,
+            prefix=input_dir,
+            suffix='.fits.fz'),
+        'std_out_path': partial(
+            tree_path,
+            prefix=join(out_dir, 'std'),
+            suffix='.o'),
+        'std_err_path': partial(
+            tree_path,
+            prefix=join(out_dir, 'std'),
+            suffix='.e'),
+        'output_file_path': partial(
+                tree_path,
+                prefix=join(out_dir, 'gps_time'),
+                suffix='_fad.h5'),
     }
 
 
