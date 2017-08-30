@@ -74,7 +74,7 @@ def qsub(job, queue='fact_medium'):
         '-q', queue,
         '-o', job.std_out_path,
         '-e', job.std_err_path,
-        which('fad_counter_extraction'),
+        which('single_fad_counter_extraction'),
         job.input_file_path,
         job.output_file_path,
     ]
