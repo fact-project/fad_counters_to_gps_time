@@ -4,7 +4,7 @@ Usage:
     isdc_production [options]
 
 Options:
-    -o, --output DIR  output_directory [default: /gpfs0/fact/processing/fad_counter_new]
+    -o, --output DIR  output_directory [default: /gpfs0/fact/processing/public/fad_counter]
     -i, --input DIR   input directory [default: /fact/raw]
     --qsub            use qsub for submission
 """
