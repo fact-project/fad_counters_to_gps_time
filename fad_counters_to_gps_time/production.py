@@ -50,9 +50,7 @@ class RunStatus:
 
     def __init__(self, path):
         self.path = path
-        self.runstatus = None
 
-    def __enter__(self):
         runstatus = pd.read_sql(SQL_QUERY, create_factdb_engine())
         if exists(self.path):
             runstatus = runstatus.merge(
@@ -66,6 +64,8 @@ class RunStatus:
             runstatus['submitted_at'] = pd.Timestamp('nat')
 
         self.runstatus = runstatus
+
+    def __enter__(self):
         return self.runstatus
 
     def __exit__(self):
