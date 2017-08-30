@@ -85,7 +85,9 @@ def main():
     if args['--qsub']:
         production_main(
             init_path_generators,
-            qsub)
+            qsub,
+            out_dir
+        )
     else:
         list_of_futures = []
         scoop_submit_job = partial(
