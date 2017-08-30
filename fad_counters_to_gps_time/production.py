@@ -32,14 +32,11 @@ def copy_top_level_readme_to(path):
     shutil.copy(readme_res_path, path)
 
 
-def check_for_input_files(runinfo):
-    no_input_files = runinfo[~runinfo.input_file_exists]
-    for job in no_input_files.itertuples():
-        runinfo.set_value(
-            job.Index,
-            'input_file_exists',
-            job.input_file_path,
-        )
+def check_for_input_files(runstatus):
+    bools = runstatus.input_file_exists.values
+    for run in runstatus[~runstatus.input_file_exists].itertuples():
+        bools[run.Index] = exists(run.input_file_path)
+    return bools
 
 
 class RunStatus:
@@ -94,9 +91,9 @@ def production_main(
     makedirs(out_dir, exist_ok=True)
     copy_top_level_readme_to(join(out_dir, 'README.md'))
 
-    with RunStatus(join(out_dir, 'runinfo.csv')) as runstatus:
+    with RunStatus(join(out_dir, 'runstatus.csv')) as runstatus:
 
-        check_for_input_files(runstatus)
+        runstatus['input_file_exists'] = check_for_input_files(runstatus)
 
         runs_not_yet_submitted = runstatus[
             runstatus.input_file_exists &
