@@ -18,7 +18,7 @@ from fact.path import tree_path
 from functools import partial
 from shutil import which
 import subprocess as sp
-from .production import main as production_main
+from .production import production_main
 
 from . import run_fad_counter_extraction
 
