@@ -32,7 +32,7 @@ def copy_top_level_readme_to(path):
     shutil.copy(readme_res_path, path)
 
 
-def check_for_input_files(runinfo, path_generator):
+def check_for_input_files(runinfo):
     no_input_files = runinfo[~runinfo.input_file_exists]
     for job in tqdm(
             no_input_files.itertuples(),
@@ -42,14 +42,15 @@ def check_for_input_files(runinfo, path_generator):
         runinfo.set_value(
             job.Index,
             'input_file_exists',
-            exists(path_generator(job))
+            job.input_file_path,
         )
 
 
 class RunStatus:
 
-    def __init__(self, path):
+    def __init__(self, path, path_gens):
         self.path = path
+        self.path_gens = path_gens
 
         runstatus = pd.read_sql(SQL_QUERY, create_factdb_engine())
         if exists(self.path):
@@ -63,13 +64,30 @@ class RunStatus:
             runstatus['input_file_exists'] = False
             runstatus['submitted_at'] = pd.Timestamp('nat')
 
+        self._add_paths()
         self.runstatus = runstatus
 
     def __enter__(self):
         return self.runstatus
 
     def __exit__(self):
+        self._remove_paths()
         self.runstatus.to_csv(self.path, 'all')
+
+    def _add_paths(self):
+        for row in self.runstatus.itertuples():
+            for name, path_gen in self.path_gens.items():
+                self.runstatus.set_value(
+                    row.Index,
+                    name,
+                    path_gen(row.fNight, row.fRunID)
+                )
+
+    def _remove_paths(self):
+        self.runstatus.drop(
+            columns=self.path_gens.keys(),
+            inplace=True
+        )
 
 
 def production_main(
@@ -82,21 +100,12 @@ def production_main(
 
     with RunStatus(join(out_dir, 'runinfo.csv')) as runstatus:
 
-        # Note: these modify runstatus in place
-        check_for_input_files(runstatus, path_gens['input_file_path'])
+        check_for_input_files(runstatus)
 
         runs_not_yet_submitted = runstatus[
             runstatus.input_file_exists &
             np.isnat(runstatus.submitted_at)
-        ].copy()
-
-        for job in runs_not_yet_submitted.itertuples():
-            for name, gen in path_gens:
-                runs_not_yet_submitted.set_value(
-                    job.Index,
-                    name,
-                    gen(job)
-                )
+        ]
 
         for job in runs_not_yet_submitted.itertuples():
             runstatus.set_value(
