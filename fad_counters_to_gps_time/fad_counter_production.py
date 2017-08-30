@@ -34,13 +34,15 @@ def init_path_generators(input_dir, out_dir):
     }
 
 
-def scoop_submit(job):
-    scoop.futures.submit(
-        run_fad_counter_extraction,
-        {
-            'in_path': job.input_file_path,
-            'out_path': job.output_file_path,
-        }
+def scoop_submit(job, list_of_futures):
+    list_of_futures.append(
+        scoop.futures.submit(
+            run_fad_counter_extraction,
+            {
+                'in_path': job.input_file_path,
+                'out_path': job.output_file_path,
+            }
+        )
     )
 
 
@@ -80,9 +82,15 @@ def main():
             init_path_generators,
             qsub)
     else:
+        list_of_futures = []
+        scoop_submit_job = partial(
+            scoop_submit,
+            list_of_futures=list_of_futures
+        )
         production_main(
             init_path_generators,
-            scoop_submit)
+            scoop_submit_job)
+        scoop.futures.wait(list_of_futures)
 
 
 if __name__ == '__main__':
