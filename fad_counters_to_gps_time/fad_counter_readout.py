@@ -16,7 +16,7 @@ from os.path import dirname
 import zfits
 import numpy as np
 import pandas as pd
-from tqdm import trange
+from tqdm import tqdm
 
 
 def main():
@@ -45,21 +45,22 @@ def run_fad_counter_extraction(in_path, out_path, show_progress=False):
 
 
 def read_fad_counters(path, show_progress=False):
-    zfits_file = zfits.ZFits(path)
+    zfits_file = zfits.FactFits(path)
     data = []
 
-    fNight = zfits_file['Events'].read_header()['NIGHT']
-    fRunID = zfits_file['Events'].read_header()['RUNID']
+    fNight = zfits_file.header()['NIGHT']
+    fRunID = zfits_file.header()['RUNID']
 
-    for event_id in trange(
-            zfits_file['Events'].get_nrows(),
+    for event in tqdm(
+            zfits_file,
+            total=zfits_file.rows,
             disable=not show_progress
-            ):
+    ):
 
-        Event = zfits_file.get('Events', 'EventNum', event_id)[0]
-        Trigger = zfits_file.get('Events', 'TriggerType', event_id)[0]
-        unix_time_tuple = zfits_file.get('Events', 'UnixTimeUTC', event_id)
-        board_times = zfits_file.get('Events', 'BoardTime', event_id)
+        Event = event.EventNum[0]
+        Trigger = event.TriggerType[0]
+        unix_time_tuple = event.UnixTimeUTC
+        board_times = event.BoardTime
 
         d = {
             'fNight': fNight,
