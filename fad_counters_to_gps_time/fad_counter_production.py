@@ -1,6 +1,7 @@
 #!/bin/env python
 
-from os.path import join
+from os.path import (join, dirname, realpath)
+import shutil
 
 from fact.path import tree_path
 from functools import partial
@@ -8,6 +9,11 @@ import manure
 
 input_dir = '/fact/raw'
 out_dir = '/gpfs0/fact/processing/public/fad_counter'
+
+shutil.copy(
+    join(dirname(realpath(__file__)), 'README.md'),
+    join(out_dir, 'README.md')
+)
 
 manure.production_main(
     path_generators={
