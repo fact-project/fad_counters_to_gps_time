@@ -1,76 +1,49 @@
 #!/bin/env python
-"""
-Usage:
-    isdc_production [options]
 
-Options:
-    -o, --output DIR  output_directory [default: /gpfs0/fact/processing/gps_time]
-    -i, --input DIR   input directory [default: /gpfs0/fact/processing/fad_counters/fad]
-"""
-import os
-from docopt import docopt
-from os import remove
-from os.path import exists
-from os.path import dirname
-from os.path import join
-from os.path import abspath
+from os.path import (join, dirname, realpath)
+import shutil
+
 from fact.path import tree_path
 from functools import partial
-from shutil import which
-import subprocess as sp
-from manure import production_main
+import manure
 
+input_dir = '/gpfs0/fact/processing/fad_counters/fad'
+out_dir = '/gpfs0/fact/processing/gps_time'
 
-def init_path_generators(input_dir, out_dir):
-    return {
-        'input_file_path': partial(tree_path, input_dir, '_fad.h5'),
-        'std_out_path': partial(tree_path, join(out_dir, 'std'), '.o'),
-        'std_err_path': partial(tree_path, join(out_dir, 'std'), '.e'),
-        'output_file_path':
-            partial(tree_path, join(out_dir, 'gps_time'), '_gps_time.h5'),
-        'models_path':
-            partial(tree_path, (out_dir, 'gps_time_models'), '_models.h5'),
-    }
+shutil.copy(
+    join(dirname(realpath(__file__)), 'README.md'),
+    join(out_dir, 'README.md')
+)
 
-
-def qsub(job, queue='fact_medium'):
-
-    for p in [
-        job.std_out_path,
-        job.std_err_path
-    ]:
-        if exists(p):
-            remove(p)
-        else:
-            os.makedirs(dirname(p), exist_ok=True)
-
-    cmd = [
-        'qsub',
-        '-q', queue,
-        '-o', job.std_out_path,
-        '-e', job.std_err_path,
-        which('gps_time_reconstruction'),
-        job.input_file_path,
-        job.output_file_path,
-        job.models_path,
-    ]
-
-    try:
-        sp.check_output(cmd, stderr=sp.STDOUT)
-    except sp.CalledProcessError as e:
-        print('returncode', e.returncode)
-        print('output', e.output)
-        raise
-
-
-def main():
-    args = docopt(__doc__)
-    out_dir = abspath(args['--output'])
-    input_dir = abspath(args['--input'])
-    path_generators = init_path_generators(input_dir, out_dir)
-
-    production_main(path_generators, qsub, out_dir)
-
-
-if __name__ == '__main__':
-    main()
+manure.production_main(
+    path_generators={
+        'input_file_path': partial(
+            tree_path,
+            prefix=input_dir,
+            suffix='_fad.h5'),
+        'std_out_path': partial(
+            tree_path,
+            prefix=join(out_dir, 'std'),
+            suffix='.o'),
+        'std_err_path': partial(
+            tree_path,
+            prefix=join(out_dir, 'std'),
+            suffix='.e'),
+        'output_file_path': partial(
+            tree_path,
+            prefix=join(out_dir, 'gps_time'),
+            suffix='_gps_time.h5'),
+        'models_path': partial(
+            tree_path,
+            prefix=join(out_dir, 'gps_time'),
+            suffix='_gps_time_models.h5'),
+    },
+    submission=partial(
+        manure.qsub,
+        o_path='std_out_path',
+        e_path='std_err_path',
+        binary_name='gps_time_reconstruction',
+        args=['input_file_path', 'output_file_path', 'models_path'],
+    ),
+    runstatus_path=join(out_dir, 'runstatus.csv')
+)
