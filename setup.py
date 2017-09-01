@@ -21,11 +21,12 @@ setup(
         'sklearn',
         'scikit-image',
         'matplotlib',
-        'pyfact>=0.12.1',
         'pandas',
         'tqdm',
         'photon_stream',
         'scoop',
+        'pyfact>=0.12.1',
+        'manure>=0.1.0',
     ],
     zip_safe=False,
     entry_points={'console_scripts': [
