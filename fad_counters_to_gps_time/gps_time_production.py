@@ -18,7 +18,7 @@ from fact.path import tree_path
 from functools import partial
 from shutil import which
 import subprocess as sp
-from .production import production_main
+from manure import production_main
 
 
 def init_path_generators(input_dir, out_dir):

@@ -19,7 +19,7 @@ from fact.path import tree_path
 from functools import partial
 from shutil import which
 import subprocess as sp
-from .production import production_main
+from manure import production_main
 
 from .fad_counter_readout import run_fad_counter_extraction
 import scoop
