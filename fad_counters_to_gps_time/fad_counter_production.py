@@ -1,6 +1,7 @@
 #!/bin/env python
 
 from os.path import (join, dirname, realpath)
+from os import makedirs
 import shutil
 
 from fact.path import tree_path
@@ -9,6 +10,7 @@ import manure
 
 input_dir = '/fact/raw'
 out_dir = '/gpfs0/fact/processing/public/fad_counter'
+makedirs(out_dir, exist_ok=True)
 
 shutil.copy(
     join(dirname(realpath(__file__)), 'README.md'),
@@ -23,15 +25,15 @@ manure.production_main(
             suffix='.fits.fz'),
         'std_out_path': partial(
             tree_path,
-            prefix=join(out_dir, 'std'),
+            prefix=out_dir,
             suffix='.o'),
         'std_err_path': partial(
             tree_path,
-            prefix=join(out_dir, 'std'),
+            prefix=out_dir,
             suffix='.e'),
         'output_file_path': partial(
                 tree_path,
-                prefix=join(out_dir, 'fad_counters'),
+                prefix=out_dir,
                 suffix='_fad.h5'),
     },
     submission=partial(
