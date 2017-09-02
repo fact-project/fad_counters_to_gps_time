@@ -1,6 +1,6 @@
 """
 Usage:
-  fact_counter_extraction <input_path> <output_path> [options]
+  single_fad_counter_extraction <input_path> <output_path> [options]
 
 Options:
   --show    show a progress bar
@@ -80,7 +80,7 @@ def read_fad_counters(path, show_progress=False):
     df['fRunID'] = df.fRunID.astype(np.uint32)
     df['Event'] = df.Event.astype(np.uint32)
     df['Trigger'] = df.Trigger.astype(np.uint16)
-    df['UnixTime_ns'] = df.Trigger.astype(np.uint64)
+    df['UnixTime_ns'] = df.UnixTime_ns.astype(np.uint64)
     for board_id, board_time in enumerate(board_times):
         df['Counter_{0:02d}'.format(board_id)] = (
             df['Counter_{0:02d}'.format(board_id)].astype(np.uint32)
