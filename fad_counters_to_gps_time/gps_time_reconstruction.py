@@ -56,12 +56,12 @@ def write_gps_time_reconstruction(
 
 def gps_time_reconstruction(path):
     df = pd.read_hdf(path)
-    df['time'] = pd.to_datetime(df.UnixTime, unit='s')
-    df['time_rounded'] = df.UnixTime.round()
-    df['time_diff'] = df.time_rounded - df.UnixTime
+    df['time'] = df.UnixTime_ns / 1e9
+    df['time_rounded'] = df.time.round()
+    df['time_diff'] = df.time_rounded - df.time
     for board_id in range(40):
-        df['Counter_{0}'.format(board_id)] = make_counter_strictly_increasing(
-            df['Counter_{0}'.format(board_id)])
+        df['Counter_{0:02d}'.format(board_id)] = make_counter_strictly_increasing(
+            df['Counter_{0:02d}'.format(board_id)])
 
     gps_set = get_gps(df)
     if len(gps_set) < 10:
@@ -75,14 +75,14 @@ def gps_time_reconstruction(path):
 
     models['Night'] = df.Night.iloc[0]
     models['Run'] = df.Run.iloc[0]
-    models['fRunStart'] = pd.to_datetime(df.UnixTime.mean(), unit='s')
+    models['fRunStart'] = pd.to_datetime(df.time.mean(), unit='s')
 
     models['is_residual_mean_good'] = residuals.mean() < MAX_RESIDUAL_MEAN
     models['is_residual_std_good'] = residuals.std() < MAX_RESIDUAL_STD
     models['is_p_values_good'] = (models.p_value > MIN_P_VALUE).all()
     models['is_tooth_gaps_good'] = (gps_set.time.dt.second != 0).all()
 
-    out_df = df[['Night', 'Run', 'Event', 'Trigger', 'UnixTime', 'GpsTime']]
+    out_df = df[['Night', 'Run', 'Event', 'Trigger', 'UnixTime_ns', 'GpsTime']]
     return out_df, models
 
 
@@ -105,7 +105,7 @@ def get_gps(df):
 def train_models(df):
     fits = []
     for board_id in range(40):
-        X = df['Counter_{0}'.format(board_id)].values
+        X = df['Counter_{0:02d}'.format(board_id)].values
         Y = df.time_rounded
 
         fit = more_precise_linear_fit(X, Y)
@@ -132,7 +132,7 @@ def more_precise_linear_fit(X, Y):
 def apply_models(models, df):
     prediction = np.zeros((len(models), len(df)), dtype=np.float128)
     for m in models.itertuples():
-        counter = df['Counter_{0}'.format(m.board_id)]
+        counter = df['Counter_{0:02d}'.format(m.board_id)]
         prediction[m.board_id, :] = m.intercept + m.slope * counter
     return prediction.mean(axis=0)
 
