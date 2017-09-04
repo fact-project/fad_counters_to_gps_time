@@ -13,9 +13,9 @@ import numpy as np
 from scipy.stats import chi2
 from fact.instrument import trigger
 
-SQUARE_TIME_ERROR_OF_COUNTER = 1e-8/12
-MAX_RESIDUAL_MEAN = 5e-6
-MAX_RESIDUAL_STD = np.sqrt(1e-5)
+SQUARE_TIME_ERROR_OF_COUNTER = (1e-8/12) * 1e9 * 1e9 # in ns
+MAX_RESIDUAL_MEAN = 5e3 # in ns
+MAX_RESIDUAL_STD = np.sqrt(1e-5) * 1e9  # in ns
 MIN_P_VALUE = 1e-4
 COUNTER_MAX = 2**32
 
@@ -57,8 +57,7 @@ def write_gps_time_reconstruction(
 def gps_time_reconstruction(path):
     df = pd.read_hdf(path)
     df['time'] = df.UnixTime_ns / 1e9
-    df['time_rounded'] = df.time.round()
-    df['time_diff'] = df.time_rounded - df.time
+    df['time_rounded'] = df.time.round() * 1e9
     for board_id in range(40):
         df['Counter_{0:02d}'.format(board_id)] = make_counter_strictly_increasing(
             df['Counter_{0:02d}'.format(board_id)])
@@ -68,21 +67,23 @@ def gps_time_reconstruction(path):
         raise TooFewGpsEvents
     training_set = gps_set.sample(frac=2/3)
     models = train_models(training_set)
-    df['GpsTime'] = apply_models(models, df)
+    df['GpsTime'] = apply_models(models, df).round().astype(np.uint64)
 
     test_set = get_gps(df).drop(training_set.index)
     residuals = test_set.GpsTime - test_set.time_rounded
 
-    models['Night'] = df.Night.iloc[0]
-    models['Run'] = df.Run.iloc[0]
+    models['fNight'] = df.fNight.iloc[0]
+    models['fRunID'] = df.fRunID.iloc[0]
     models['fRunStart'] = pd.to_datetime(df.time.mean(), unit='s')
-
+    
+    models['residuals_mean'] = residuals.mean()
+    models['residuals_std'] = residuals.std()
     models['is_residual_mean_good'] = residuals.mean() < MAX_RESIDUAL_MEAN
     models['is_residual_std_good'] = residuals.std() < MAX_RESIDUAL_STD
     models['is_p_values_good'] = (models.p_value > MIN_P_VALUE).all()
-    models['is_tooth_gaps_good'] = (gps_set.time.dt.second != 0).all()
+    models['is_tooth_gaps_good'] = (pd.to_datetime(gps_set.time.round(), unit='s').dt.second != 0).all()
 
-    out_df = df[['Night', 'Run', 'Event', 'Trigger', 'UnixTime_ns', 'GpsTime']]
+    out_df = df[['fNight', 'fRunID', 'Event', 'Trigger', 'UnixTime_ns', 'GpsTime']]
     return out_df, models
 
 
@@ -106,7 +107,7 @@ def train_models(df):
     fits = []
     for board_id in range(40):
         X = df['Counter_{0:02d}'.format(board_id)].values
-        Y = df.time_rounded
+        Y = df.time_rounded.values
 
         fit = more_precise_linear_fit(X, Y)
         residuals = Y - np.polyval(fit, X)
