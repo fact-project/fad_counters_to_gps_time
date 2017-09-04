@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
-import fad_counters_to_gps_time.gps_time_reconstruction as tr
+import single_gps_time_reco as tr
 import pkg_resources
 
 fad_counters_file_path = pkg_resources.resource_filename(
-    'fad_counters_to_gps_time',
+    'single_gps_time_reco',
     'tests/resources/20161231_109_fad.h5')
 
 

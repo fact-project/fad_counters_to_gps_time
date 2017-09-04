@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import fad_counters_to_gps_time.gps_time_reconstruction as tr
+import single_gps_time_reco as tr
 
 
 def test_date_range():
