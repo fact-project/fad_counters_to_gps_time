@@ -23,9 +23,9 @@ setup(
     ],
     zip_safe=False,
     scripts=[
-        'fad_counter_production',
-        'gps_time_production',
-        'single_fad_counter_extraction',
-        'single_gps_time_reco',
+        'bin/fad_counter_production',
+        'bin/gps_time_production',
+        'bin/single_fad_counter_extraction',
+        'bin/single_gps_time_reco',
     ],
 )
