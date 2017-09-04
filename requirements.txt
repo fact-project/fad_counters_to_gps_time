@@ -1,2 +1,0 @@
--e git+git@github.com:dneise/fitsio.git
--e git+git@github.com:fact-project/zfits.git

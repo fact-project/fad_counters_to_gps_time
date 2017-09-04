@@ -8,6 +8,10 @@ setup(
     author='Dominik, Neise, Sebastian Achim Mueller',
     author_email='neised@phys.ethz.ch, sebmuell@phys.ethz.ch',
     license='MIT',
+    py_modules=[
+        'single_gps_time_reco',
+        'single_fad_counter_extraction'
+    ],
     install_requires=[
         'docopt',
         'scipy',
@@ -25,7 +29,9 @@ setup(
     scripts=[
         'bin/fad_counter_production',
         'bin/gps_time_production',
-        'bin/single_fad_counter_extraction',
-        'bin/single_gps_time_reco',
     ],
+    entry_points={'console_scripts': [
+        'single_fad_counter_extraction=single_fad_counter_extraction:main',
+        'single_gps_time_reco=single_gps_time_reco:main'
+    ]},
 )
