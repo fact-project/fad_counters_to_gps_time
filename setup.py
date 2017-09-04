@@ -8,13 +8,6 @@ setup(
     author='Dominik, Neise, Sebastian Achim Mueller',
     author_email='neised@phys.ethz.ch, sebmuell@phys.ethz.ch',
     license='MIT',
-    packages=[
-        'fad_counters_to_gps_time',
-    ],
-    package_data={'photon_stream': [
-            'tests/resources/*',
-        ]
-    },
     install_requires=[
         'docopt',
         'scipy',
@@ -29,10 +22,10 @@ setup(
         'manure>=0.1.0',
     ],
     zip_safe=False,
-    entry_points={'console_scripts': [
-        'single_fad_counter_extraction = fad_counters_to_gps_time.fad_counter_readout:main',
-        'single_gps_time_reco = fad_counters_to_gps_time.gps_time_reconstruction:main',
-        'produce_fad_counters = fad_counters_to_gps_time.fad_counter_production:main',
-        'produce_gps_time = fad_counters_to_gps_time.gps_time_production:main',
-    ]},
+    scripts=[
+        'fad_counter_production',
+        'gps_time_production',
+        'single_fad_counter_extraction',
+        'single_gps_time_reco',
+    ],
 )
