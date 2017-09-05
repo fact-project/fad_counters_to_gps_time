@@ -1,0 +1,42 @@
+#!/bin/env python
+
+from os.path import (join, dirname, realpath)
+from os import makedirs
+
+from fact.path import tree_path
+from functools import partial
+import manure
+import numpy as np
+import pandas as pd
+from tqdm import tqdm
+
+input_dir = '/gpfs0/fact/processing/public/fad_counter'
+
+
+def status_check(job):
+    created_file = pd.read_hdf(job.input_file_path)
+    return len(created_file) == job.fNumEvents
+
+
+with manure.RunStatus(
+        runstatus_path=join(input_dir, 'runstatus.csv'),
+        path_generators={
+            'input_file_path': partial(
+                    tree_path,
+                    prefix=input_dir,
+                    suffix='_fad.h5'),
+        }
+        ) as runstatus:
+
+    if 'is_ok' in runstatus.columns:
+        is_ok = runstatus.is_ok.values.copy()
+    else:
+        is_ok = np.zeros(len(runstatus), dtype=np.bool)
+
+    for job in tqdm(
+        runstatus.itertuples(),
+        desc='checking status',
+        total=len(runstatus)
+    ):
+        is_ok[job.Index] = status_check(job)
+    runstatus['is_ok'] = is_ok
