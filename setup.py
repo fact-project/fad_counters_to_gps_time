@@ -28,6 +28,7 @@ setup(
     zip_safe=False,
     scripts=[
         'bin/fad_counter_production',
+        'bin/fad_counter_status_check',
         'bin/gps_time_production',
     ],
     entry_points={'console_scripts': [
