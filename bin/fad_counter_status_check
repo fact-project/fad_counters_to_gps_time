@@ -1,6 +1,6 @@
 #!/bin/env python
 
-from os.path import (join, dirname, realpath)
+from os.path import (join, dirname, realpath, exists)
 from os import makedirs
 
 from fact.path import tree_path
@@ -19,7 +19,7 @@ def status_check(job):
 
 
 with manure.RunStatus(
-        runstatus_path=join(input_dir, 'runstatus.csv'),
+        path=join(input_dir, 'runstatus.csv'),
         path_generators={
             'input_file_path': partial(
                     tree_path,
@@ -33,10 +33,16 @@ with manure.RunStatus(
     else:
         is_ok = np.zeros(len(runstatus), dtype=np.bool)
 
+    output_exists = np.array([
+            exists(job.input_file_path) for job in tqdm(runstatus.itertuples(), desc='file exists?', total=len(runstatus))
+        ], dtype=np.bool)
+
+    to_be_done = runstatus[output_exists]
+
     for job in tqdm(
-        runstatus.itertuples(),
+        to_be_done.itertuples(),
         desc='checking status',
-        total=len(runstatus)
+        total=len(to_be_done)
     ):
         is_ok[job.Index] = status_check(job)
     runstatus['is_ok'] = is_ok
